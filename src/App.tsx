@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Hero from "./components/Hero";
 import Button from "./components/Button";
 import Footer from "./components/Footer";
+import BuilderPage from "./pages/BuilderPage";
 
 function LandingPage() {
   return (
@@ -22,6 +23,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/build" element={<BuilderPage />} />
     </Routes>
   );
 }

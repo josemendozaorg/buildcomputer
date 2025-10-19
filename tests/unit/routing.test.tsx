@@ -28,6 +28,19 @@ describe("React Router Configuration", () => {
     expect(screen.getByText(/Get Started/i)).toBeInTheDocument();
   });
 
+  it("should render the BuilderPage at /build route", () => {
+    render(
+      <MemoryRouter initialEntries={["/build"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    // Verify BuilderPage content is displayed
+    expect(
+      screen.getByRole("heading", { name: /pc builder/i }),
+    ).toBeInTheDocument();
+  });
+
   it("should have routing capability configured", () => {
     // This test verifies that react-router-dom is installed and accessible
     expect(() => {
