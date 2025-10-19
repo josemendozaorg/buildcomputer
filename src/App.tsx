@@ -1,10 +1,11 @@
-import Layout from './components/Layout'
-import Header from './components/Header'
-import Hero from './components/Hero'
-import Button from './components/Button'
-import Footer from './components/Footer'
+import { Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+import Button from "./components/Button";
+import Footer from "./components/Footer";
 
-function App() {
+function LandingPage() {
   return (
     <Layout>
       <Header />
@@ -14,7 +15,15 @@ function App() {
       </div>
       <Footer />
     </Layout>
-  )
+  );
 }
 
-export default App
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+    </Routes>
+  );
+}
+
+export default App;
