@@ -5,7 +5,15 @@ import { quickpickle } from 'quickpickle'
 export default defineConfig({
   plugins: [
     react(),
-    quickpickle()
+    quickpickle({
+      worldConfig: {
+        host: 'http://localhost:5173',
+        headless: true,
+        defaultBrowser: 'chromium',
+        defaultBrowserSize: 'desktop',
+        stepTimeout: 10000
+      }
+    })
   ],
   test: {
     // Vitest configuration

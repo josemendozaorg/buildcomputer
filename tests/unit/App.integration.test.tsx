@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { render } from '@testing-library/react'
 import App from '../../src/App'
 
 describe('App Integration', () => {
@@ -6,9 +7,13 @@ describe('App Integration', () => {
     // Verify App is a function (React component)
     expect(typeof App).toBe('function')
 
-    // Verify App can be called to create a React element
-    const element = App({})
-    expect(element).toBeTruthy()
-    expect(element.type).toBe('div')
+    // Verify App renders successfully with all components
+    const { container } = render(<App />)
+    expect(container).toBeTruthy()
+
+    // Verify key elements are present
+    expect(container.querySelector('header')).toBeTruthy()
+    expect(container.querySelector('main')).toBeTruthy()
+    expect(container.querySelector('footer')).toBeTruthy()
   })
 })
