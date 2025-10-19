@@ -16,8 +16,11 @@ export default defineConfig({
       'tests/bdd/features/**/*.feature',
       '**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'
     ],
-    // Setup files with step definitions
-    setupFiles: ['./tests/bdd/steps/project-setup-landing-page.steps.ts'],
+    // Setup files with step definitions and test utilities
+    setupFiles: [
+      './tests/setup.ts',
+      './tests/bdd/steps/project-setup-landing-page.steps.ts'
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
