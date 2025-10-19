@@ -322,77 +322,305 @@ This feature establishes the foundational development environment for the BuildC
 **And** the developer should be able to fix the issues before committing
 
 ## Acceptance Criteria
-- [ ] [Criterion 1: Specific, testable condition]
-- [ ] [Criterion 2: Specific, testable condition]
-- [ ] [...]
 
-### UI/UX Acceptance Criteria (if applicable)
-- [ ] **Visual Design:** Matches approved mockups/design system
-- [ ] **Accessibility:** Passes WCAG 2.1 Level AA compliance (axe-core scan)
-- [ ] **Responsive Design:** Works correctly on mobile, tablet, and desktop
-- [ ] **Cross-Browser:** Tested on Chrome, Firefox, Safari, Edge
-- [ ] **Component Stories:** All components documented in Storybook
-- [ ] **Visual Regression:** No unintended visual changes (Chromatic/Percy)
-- [ ] **Keyboard Navigation:** All interactions work with keyboard only
-- [ ] **Screen Reader:** Compatible with NVDA, JAWS, VoiceOver
-- [ ] **Performance:** First Contentful Paint < 1.5s, Time to Interactive < 3.5s
-- [ ] **Interactive States:** All states implemented (hover, focus, active, disabled, error, loading)
+### Project Infrastructure Acceptance Criteria
+- [ ] **AC-1.1:** Vite + React + TypeScript project initializes successfully with `pnpm install`
+- [ ] **AC-1.2:** Development server starts on port 5173 with `pnpm dev` in under 3 seconds
+- [ ] **AC-1.3:** TypeScript strict mode is enabled and catches type errors during build
+- [ ] **AC-1.4:** Hot Module Replacement (HMR) updates the browser within 100ms of file save
+- [ ] **AC-1.5:** Tailwind CSS is configured and utility classes work in components
+- [ ] **AC-1.6:** ESLint with TypeScript rules passes with 0 errors and 0 warnings on codebase
+- [ ] **AC-1.7:** Prettier formats all code consistently with `pnpm format`
+- [ ] **AC-1.8:** Husky + lint-staged runs pre-commit hooks automatically and blocks commits with errors
+- [ ] **AC-1.9:** Production build completes successfully with `pnpm build` and generates dist/ directory
+- [ ] **AC-1.10:** Build output is optimized (minified JS, extracted CSS, tree-shaken code)
+
+### Testing Infrastructure Acceptance Criteria
+- [ ] **AC-2.1:** Vitest runs unit tests with `pnpm test:unit` and shows pass/fail status
+- [ ] **AC-2.2:** Vitest generates code coverage reports with configurable thresholds
+- [ ] **AC-2.3:** Storybook starts on port 6006 with `pnpm storybook` and displays component stories
+- [ ] **AC-2.4:** Storybook a11y addon automatically scans components for accessibility violations
+- [ ] **AC-2.5:** Playwright E2E tests run with `pnpm test:e2e` in Chromium headless mode
+- [ ] **AC-2.6:** Playwright captures screenshots on test failures for debugging
+- [ ] **AC-2.7:** QuickPickle BDD tests run with `pnpm test:bdd` and parse all .feature files
+- [ ] **AC-2.8:** All 18 BDD scenarios execute and report pass/fail status correctly
+
+### Landing Page UI Acceptance Criteria
+- [ ] **AC-3.1:** Landing page displays "BuildComputer" title in hero section
+- [ ] **AC-3.2:** Tagline and 2-3 sentence description are visible and readable
+- [ ] **AC-3.3:** "Get Started" call-to-action button is centered and visually prominent
+- [ ] **AC-3.4:** Navigation header appears at top with logo/branding
+- [ ] **AC-3.5:** Footer appears at bottom with placeholder links (About, Features, Contact)
+- [ ] **AC-3.6:** Page uses semantic HTML5 elements (header, main, section, footer, nav)
+- [ ] **AC-3.7:** Viewport meta tag is present for proper mobile rendering
+- [ ] **AC-3.8:** Page renders correctly on mobile (375x667), tablet (768x1024), and desktop (1920x1080)
+- [ ] **AC-3.9:** All content is readable with no horizontal scrolling on mobile
+- [ ] **AC-3.10:** Navigation adapts appropriately for mobile viewports
+
+### Deployment Configuration Acceptance Criteria
+- [ ] **AC-4.1:** `pnpm build` produces static files in dist/ directory ready for deployment
+- [ ] **AC-4.2:** Build output is under 200KB gzipped for initial bundle
+- [ ] **AC-4.3:** Environment variable support is configured (.env files)
+- [ ] **AC-4.4:** Deployment configuration file exists for Vercel or Netlify
+- [ ] **AC-4.5:** Assets (JS, CSS, images) have correct paths for production hosting
+
+### UI/UX Interaction Acceptance Criteria
+- [ ] **AC-5.1:** "Get Started" button shows hover state (color change, scale) on mouse hover
+- [ ] **AC-5.2:** "Get Started" button shows active/pressed state on click
+- [ ] **AC-5.3:** Cursor changes to pointer when hovering over interactive elements
+- [ ] **AC-5.4:** Button is at least 44x44px for touch targets (mobile accessibility)
+- [ ] **AC-5.5:** All interactive states are visually distinct (default, hover, active, focus)
+
+### Accessibility Acceptance Criteria (WCAG 2.1 Level AA)
+- [ ] **AC-6.1:** All interactive elements are keyboard accessible via Tab key
+- [ ] **AC-6.2:** Visible focus indicators (outline/ring) appear on focused elements
+- [ ] **AC-6.3:** Focus moves through interactive elements in logical order
+- [ ] **AC-6.4:** "Get Started" button activates with Enter key when focused
+- [ ] **AC-6.5:** Color contrast ratio is at least 4.5:1 for normal text
+- [ ] **AC-6.6:** Heading hierarchy is logical with no skipped levels (H1 → H2 → H3)
+- [ ] **AC-6.7:** Page title is descriptive and announced by screen readers
+- [ ] **AC-6.8:** Semantic structure (header, main, footer) is clear to assistive technologies
+- [ ] **AC-6.9:** "Get Started" button has proper accessible name for screen readers
+- [ ] **AC-6.10:** Automated accessibility scan (axe-core) reports 0 critical violations
+
+### Performance Acceptance Criteria
+- [ ] **AC-7.1:** First Contentful Paint (FCP) occurs within 1.5 seconds on 3G connection
+- [ ] **AC-7.2:** Largest Contentful Paint (LCP) occurs within 2.5 seconds
+- [ ] **AC-7.3:** Time to Interactive (TTI) is under 3.5 seconds
+- [ ] **AC-7.4:** Cumulative Layout Shift (CLS) is less than 0.1
+- [ ] **AC-7.5:** First Input Delay (FID) is under 100ms
+
+### Component Testing Acceptance Criteria
+- [ ] **AC-8.1:** Each React component has a corresponding .stories.tsx file in Storybook
+- [ ] **AC-8.2:** Component stories demonstrate all variants and states
+- [ ] **AC-8.3:** Storybook controls allow interactive testing of component props
+- [ ] **AC-8.4:** Component documentation is written in MDX format
+- [ ] **AC-8.5:** Components render correctly in Storybook canvas without errors
+
+### Cross-Browser Compatibility Acceptance Criteria
+- [ ] **AC-9.1:** Landing page renders correctly in Chrome (latest version)
+- [ ] **AC-9.2:** Landing page renders correctly in Firefox (latest version)
+- [ ] **AC-9.3:** Landing page renders correctly in Safari (latest version)
+- [ ] **AC-9.4:** Landing page renders correctly in Edge (latest version)
+- [ ] **AC-9.5:** All interactive features work consistently across browsers
+
+### Code Quality Acceptance Criteria
+- [ ] **AC-10.1:** TypeScript strict mode enabled with no suppressions or @ts-ignore comments
+- [ ] **AC-10.2:** ESLint rules pass with 0 errors and 0 warnings
+- [ ] **AC-10.3:** Prettier formatting is consistent across all files
+- [ ] **AC-10.4:** All committed code passes pre-commit hooks (lint + format)
+- [ ] **AC-10.5:** No console.log statements in production code
+- [ ] **AC-10.6:** Import statements are organized and unused imports are removed
+
+### Test Coverage Acceptance Criteria
+- [ ] **AC-11.1:** Unit test coverage is at least 80% for utility functions
+- [ ] **AC-11.2:** All React components have corresponding component tests in Storybook
+- [ ] **AC-11.3:** All 18 BDD acceptance test scenarios pass (GREEN phase)
+- [ ] **AC-11.4:** E2E tests cover critical user paths (page load, button interactions)
+- [ ] **AC-11.5:** Test suite runs in CI/CD pipeline and blocks deployment on failure
+
+## Definition of Done
+
+This feature is considered **COMPLETE** when:
+
+1. ✅ All 11 sections of Acceptance Criteria are satisfied (65+ criteria total)
+2. ✅ All 18 BDD acceptance test scenarios pass (GREEN phase)
+3. ✅ Production build completes successfully and deploys to staging environment
+4. ✅ Manual testing confirms responsive design on mobile, tablet, and desktop
+5. ✅ Automated accessibility scan reports 0 critical violations
+6. ✅ Code review is approved by at least one reviewer (or solo dev self-review documented)
+7. ✅ All code is committed to Git with meaningful commit messages
+8. ✅ README.md is updated with setup instructions and available scripts
+9. ✅ No known bugs or blockers remain
+10. ✅ Performance metrics meet or exceed targets (FCP < 1.5s, LCP < 2.5s, TTI < 3.5s)
 
 ## Non-Functional Requirements
-### Performance
-[Performance expectations, if applicable]
 
-**UI/UX Performance Targets:**
-- **First Contentful Paint (FCP):** < 1.5 seconds
+### Performance
+
+**Development Performance:**
+- **Cold Start (pnpm install):** Complete within 2 minutes on average internet connection
+- **Dev Server Startup:** Launch within 3 seconds after `pnpm dev` command
+- **Hot Module Replacement:** Reflect changes within 100ms of file save
+- **Build Time:** Production build completes within 30 seconds
+- **Test Execution:** Unit tests run in under 5 seconds, BDD tests in under 30 seconds
+
+**Runtime Performance (Landing Page):**
+- **First Contentful Paint (FCP):** < 1.5 seconds on Fast 3G connection
 - **Largest Contentful Paint (LCP):** < 2.5 seconds
 - **Time to Interactive (TTI):** < 3.5 seconds
-- **Cumulative Layout Shift (CLS):** < 0.1
-- **First Input Delay (FID):** < 100ms
-- **Bundle Size:** < 200KB (gzipped) for critical path
-- **Image Optimization:** WebP format, lazy loading, responsive images
+- **Cumulative Layout Shift (CLS):** < 0.1 (no layout shifts)
+- **First Input Delay (FID):** < 100ms for button interactions
+- **Bundle Size:** < 200KB gzipped for initial JavaScript bundle
+- **CSS Size:** < 50KB gzipped for Tailwind CSS (production build with purging)
+- **Lighthouse Score:** 90+ for Performance, Accessibility, Best Practices, SEO
 
 ### Security
-[Security requirements, if applicable]
 
-**UI/UX Security Considerations:**
-- **XSS Protection:** Sanitize user inputs, use Content Security Policy
-- **CSRF Protection:** CSRF tokens for state-changing operations
-- **Sensitive Data:** Mask passwords, credit cards; secure form submission
-- **Third-Party Scripts:** Subresource Integrity (SRI) for CDN resources
+**Static Site Security:**
+- **HTTPS Enforced:** All connections must use HTTPS (automatic with Vercel/Netlify)
+- **Content Security Policy:** CSP headers configured to prevent XSS attacks
+- **No Sensitive Data:** No API keys, credentials, or secrets in client-side code
+- **Dependency Security:** `pnpm audit` reports no high or critical vulnerabilities
+- **Subresource Integrity:** SRI hashes for any external scripts from CDNs
+- **CORS Configuration:** Appropriate CORS headers if API calls are added later
+
+**Development Security:**
+- **.env Files:** Never committed to Git (.gitignore enforced)
+- **Secret Scanning:** Pre-commit hooks prevent committing secrets
+- **Dependency Updates:** Regular security updates via Dependabot or Renovate
+- **TypeScript Safety:** Strict mode prevents type-related security issues
 
 ### Usability
-[Usability considerations, if applicable]
 
-**UI/UX Usability Standards:**
-- **Nielsen's Heuristics:** Follows 10 usability heuristics
-- **Fitts's Law:** Important actions have larger, easier-to-click targets
-- **Miller's Law:** Chunked information into groups of 5-9 items
-- **Error Prevention:** Confirmation dialogs for destructive actions
-- **Error Recovery:** Clear error messages with actionable solutions
-- **Consistency:** Consistent patterns, terminology, and visual design
-- **Feedback:** Immediate visual feedback for all user actions
-- **Help & Documentation:** Contextual help, tooltips, onboarding
+**User Experience Principles:**
+- **Simplicity:** Landing page is simple, uncluttered, and easy to understand
+- **Clarity:** Purpose of BuildComputer is immediately clear within 5 seconds
+- **Call to Action:** "Get Started" button is obvious and inviting
+- **Fast Loading:** Page feels instant, no long loading spinners
+- **Responsive Design:** Works seamlessly on all device sizes
+- **Error Tolerance:** No broken links, missing images, or JavaScript errors
+
+**Accessibility Compliance:**
+- **WCAG 2.1 Level AA:** Full compliance with Web Content Accessibility Guidelines
+- **Screen Reader Friendly:** Tested with NVDA, JAWS, and VoiceOver
+- **Keyboard Navigation:** All functionality accessible without mouse
+- **Color Contrast:** Meets minimum 4.5:1 ratio for all text
+- **Focus Management:** Clear, visible focus indicators on all interactive elements
+
+**Developer Experience:**
+- **Fast Feedback:** HMR provides instant visual feedback during development
+- **Clear Errors:** TypeScript and ESLint provide helpful error messages
+- **Easy Testing:** Simple commands (`pnpm test`, `pnpm test:bdd`) run all tests
+- **Storybook Preview:** Visual component testing without running full app
+- **Documentation:** README explains all scripts and common workflows
 
 ## Constraints and Assumptions
+
 ### Technical Constraints
-- [Constraint 1]
-- [...]
+
+**Development Environment:**
+- **Solo Developer:** Single developer working on the project, limiting parallel workstreams
+- **Time Constraint:** Setup must be quick and not overly complex
+- **Budget Constraint:** Using free tier hosting (Vercel/Netlify free tier limits apply)
+- **AI Coding Tools:** Architecture must be AI-friendly (clear TypeScript, standard patterns)
+
+**Technology Constraints:**
+- **Node.js Version:** Requires Node.js 18.x or higher
+- **Package Manager:** Must use pnpm (not npm or yarn) for consistency
+- **Browser Support:** Modern browsers only (Chrome, Firefox, Safari, Edge - last 2 versions)
+  - No Internet Explorer support
+  - No legacy browser polyfills in initial version
+- **Static Site:** Initial version is client-side only, no server-side rendering
+- **No Backend:** Landing page has no backend API in this phase (future feature)
+
+**Infrastructure Constraints:**
+- **Free Tier Hosting:** Limited to Vercel or Netlify free tier capabilities
+  - 100GB bandwidth/month
+  - Automatic HTTPS
+  - No custom server-side logic
+- **Build Time:** Must complete build within platform limits (typically 15-45 minutes max)
+- **Asset Size:** Total deployed size should be under 100MB
 
 ### Assumptions
-- [Assumption 1]
-- [...]
+
+**User Assumptions:**
+- Users have modern browsers (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
+- Users have JavaScript enabled (progressive enhancement not required in v1)
+- Users have reasonably fast internet (3G or better for optimal experience)
+- Users can see and interact with standard web interfaces (accessibility features for those who cannot)
+
+**Developer Assumptions:**
+- Developer has Node.js 18+ and pnpm installed on their machine
+- Developer has basic familiarity with React and TypeScript
+- Developer has Git installed and configured
+- Developer has access to GitHub (or similar) for version control
+- Developer has access to Vercel or Netlify account for deployment
+- Developer has modern code editor (VS Code, Cursor, or similar)
+
+**Project Assumptions:**
+- This is a greenfield project with no legacy code to maintain
+- Design decisions can be made autonomously by solo developer
+- Color scheme, fonts, and visual design can be determined during implementation
+- Placeholder content (tagline, description) can be refined iteratively
+- Future features (user accounts, backend API, database) are out of scope for v1
+
+**Infrastructure Assumptions:**
+- Vercel or Netlify free tier will remain available and sufficient
+- npm registry and CDNs will be reliably available
+- GitHub Actions (or similar CI/CD) will be available for automated testing
+- Modern build tools (Vite, TypeScript, Tailwind) will continue to work together
 
 ### Dependencies
-- [Dependency 1]
-- [...]
+
+**Runtime Dependencies:**
+- **React 18.x:** Core UI library
+- **React DOM 18.x:** DOM rendering for React
+- **Node.js 18+:** JavaScript runtime for build tools
+
+**Development Dependencies:**
+- **Vite 5.x:** Build tool and dev server
+- **TypeScript 5.x:** Type checking and compilation
+- **Tailwind CSS 3.x:** Utility-first CSS framework
+- **ESLint 8.x:** JavaScript/TypeScript linting
+- **Prettier 3.x:** Code formatting
+- **Husky 9.x:** Git hooks
+- **lint-staged 15.x:** Pre-commit linting
+
+**Testing Dependencies:**
+- **Vitest 1.x:** Unit and integration testing framework
+- **Playwright 1.x:** E2E testing framework
+- **QuickPickle 1.x:** BDD testing framework for Vitest
+- **@quickpickle/playwright 1.x:** Playwright integration for QuickPickle
+- **Storybook 7.x:** Component development and testing
+- **@storybook/addon-a11y:** Accessibility testing addon
+- **jsdom / happy-dom:** DOM implementation for testing
+
+**Deployment Dependencies:**
+- **Vercel or Netlify account:** For hosting and deployment
+- **Git repository:** GitHub, GitLab, or Bitbucket for version control
+- **CI/CD Platform:** GitHub Actions, GitLab CI, or similar (optional but recommended)
+
+**External Service Dependencies:**
+- **npm Registry:** For downloading packages
+- **CDNs:** For serving node_modules in production (handled by bundler)
+- **Browser APIs:** Web APIs available in modern browsers (fetch, localStorage, etc.)
 
 ## Open Questions
-- [ ] [Question 1]
-- [ ] [Question 2]
-- [ ] [...]
+
+### Design & Content
+- [ ] **Color Scheme:** What are the primary, secondary, and accent colors for BuildComputer branding?
+- [ ] **Typography:** What fonts should be used? (Custom web fonts or system fonts?)
+- [ ] **Logo/Branding:** Is there an existing logo or should placeholder text be used?
+- [ ] **Tagline:** What is the exact tagline text? (e.g., "Build Your Perfect PC with Confidence")
+- [ ] **Description:** What is the 2-3 sentence description for the landing page?
+
+### Functionality
+- [ ] **"Get Started" Action:** What should happen when the button is clicked? (Navigate to /build, scroll to section, open modal?)
+- [ ] **Navigation Links:** What links should appear in the header? (About, Features, Pricing, Contact?)
+- [ ] **Footer Links:** What links should appear in the footer? (same as header, or different?)
+- [ ] **Social Media:** Should social media links be included? (Twitter, Discord, Reddit?)
+
+### Analytics & Tracking
+- [ ] **Analytics:** Should Google Analytics, Plausible, or other analytics be integrated?
+- [ ] **Error Tracking:** Should Sentry or similar error tracking be included?
+- [ ] **Performance Monitoring:** Should Lighthouse CI or similar be integrated into deployment?
+
+### Future Features
+- [ ] **Backend API:** When will the backend API be needed? (affects architecture decisions)
+- [ ] **User Authentication:** Will users need to log in? (future feature planning)
+- [ ] **Database:** What database will be used for storing user builds? (future consideration)
+- [ ] **Payment Processing:** Will there be paid features? (affects infrastructure planning)
+
+### Deployment & Operations
+- [ ] **Domain Name:** What domain will BuildComputer be hosted on?
+- [ ] **Environment Strategy:** Will there be separate staging and production environments?
+- [ ] **Monitoring:** What uptime monitoring should be configured? (UptimeRobot, Pingdom?)
+- [ ] **Backup Strategy:** Are backups needed for static site? (Git is backup for code)
 
 ## Approval
-- **Created by:** [Name]
-- **Date:** [Date]
-- **Status:** [Draft/Under Review/Approved]
-- **Approved by:** [Name/Pending]
+- **Created by:** Claude Code (AI Assistant) & Solo Developer
+- **Date:** 2025-10-19
+- **Status:** Draft - Ready for Implementation
+- **Approved by:** Solo Developer (Self-Approved)
+- **Next Steps:** Proceed with `/auto-tdd-feature` to implement this specification following TDD workflow
