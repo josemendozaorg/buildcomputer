@@ -1,4 +1,5 @@
-import { Build } from "../components/BuildCard";
+import { Build } from "../types/components";
+import { selectComponents } from "../data/componentDatabase";
 
 interface PersonaBuildProfile {
   optimizedDescription: string;
@@ -75,13 +76,41 @@ export function generateBuildRecommendations(
   const profile: PersonaBuildProfile =
     personaProfiles[personaId] || personaProfiles["competitive-gamer"]!;
 
-  // Calculate prices based on budget
+  // Calculate budget tiers
   // Optimized: ~90% of budget
   // Performance: ~100% of budget
   // Featured: ~125% of budget (aspirational)
-  const optimizedPrice = Math.round(budget * 0.9);
-  const performancePrice = budget;
-  const featuredPrice = Math.round(budget * 1.25);
+  const optimizedBudget = Math.round(budget * 0.9);
+  const performanceBudget = budget;
+  const featuredBudget = Math.round(budget * 1.25);
+
+  // Select components for each tier
+  const optimizedComponents = selectComponents(
+    personaId,
+    "optimized",
+    optimizedBudget,
+  );
+  const performanceComponents = selectComponents(
+    personaId,
+    "performance",
+    performanceBudget,
+  );
+  const featuredComponents = selectComponents(
+    personaId,
+    "featured",
+    featuredBudget,
+  );
+
+  // Calculate actual prices from components
+  const optimizedPrice = optimizedComponents.reduce(
+    (sum, c) => sum + c.price,
+    0,
+  );
+  const performancePrice = performanceComponents.reduce(
+    (sum, c) => sum + c.price,
+    0,
+  );
+  const featuredPrice = featuredComponents.reduce((sum, c) => sum + c.price, 0);
 
   return [
     {
@@ -89,18 +118,21 @@ export function generateBuildRecommendations(
       title: "Optimized Build",
       price: optimizedPrice,
       description: profile.optimizedDescription,
+      components: optimizedComponents,
     },
     {
       id: "performance",
       title: "Performance Build",
       price: performancePrice,
       description: profile.performanceDescription,
+      components: performanceComponents,
     },
     {
       id: "featured",
       title: "Featured Build",
       price: featuredPrice,
       description: profile.featuredDescription,
+      components: featuredComponents,
     },
   ];
 }

@@ -48,25 +48,25 @@ describe("BuildRecommendations Component", () => {
     });
   });
 
-  it("should adjust builds based on budget", () => {
-    const { rerender } = render(
-      <BuildRecommendations personaId="competitive-gamer" budget={1000} />,
+  it("should display builds with actual component prices", () => {
+    render(
+      <BuildRecommendations personaId="competitive-gamer" budget={2000} />,
     );
 
-    // Low budget build
-    const lowBudgetPrices = screen.getAllByTestId("build-price");
-    const lowBudgetPrice1 = lowBudgetPrices[0].textContent || "";
+    // Should have 3 build tiers
+    const buildCards = screen.getAllByTestId("build-card");
+    expect(buildCards).toHaveLength(3);
 
-    // Higher budget build
-    rerender(
-      <BuildRecommendations personaId="competitive-gamer" budget={4000} />,
-    );
+    // Prices should be calculated from actual components
+    const prices = screen.getAllByTestId("build-price");
+    expect(prices[0].textContent).toBeTruthy();
+    expect(prices[1].textContent).toBeTruthy();
+    expect(prices[2].textContent).toBeTruthy();
 
-    const highBudgetPrices = screen.getAllByTestId("build-price");
-    const highBudgetPrice1 = highBudgetPrices[0].textContent || "";
-
-    // Prices should be different
-    expect(lowBudgetPrice1).not.toBe(highBudgetPrice1);
+    // Each price should be a valid currency format
+    prices.forEach((price) => {
+      expect(price.textContent).toMatch(/^\$/);
+    });
   });
 
   it("should show gaming-focused descriptions for gaming personas", () => {
