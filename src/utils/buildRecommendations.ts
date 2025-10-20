@@ -71,8 +71,9 @@ export function generateBuildRecommendations(
   personaId: string,
   budget: number,
 ): Build[] {
-  const profile =
-    personaProfiles[personaId] || personaProfiles["competitive-gamer"];
+  // Get profile or fallback to competitive-gamer
+  const profile: PersonaBuildProfile =
+    personaProfiles[personaId] || personaProfiles["competitive-gamer"]!;
 
   // Calculate prices based on budget
   // Optimized: ~90% of budget
