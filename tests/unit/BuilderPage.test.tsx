@@ -3,7 +3,7 @@
  *
  * Tests verify that:
  * 1. BuilderPage renders successfully
- * 2. Placeholder content is displayed
+ * 2. PersonaSelector is displayed
  * 3. Component structure is correct
  */
 
@@ -17,12 +17,12 @@ describe("BuilderPage Component", () => {
     expect(container).toBeTruthy();
   });
 
-  it("should display the builder interface placeholder", () => {
+  it("should display the PersonaSelector with heading", () => {
     render(<BuilderPage />);
 
-    // Verify placeholder heading is present
+    // Verify PersonaSelector heading is present
     expect(
-      screen.getByRole("heading", { name: /pc builder/i }),
+      screen.getByRole("heading", { name: /choose your story/i }),
     ).toBeInTheDocument();
   });
 

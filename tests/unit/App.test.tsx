@@ -39,9 +39,9 @@ describe("App Component", () => {
     const button = screen.getByText(/Get Started/i);
     await user.click(button);
 
-    // Verify we navigated to the builder page
+    // Verify we navigated to the builder page (now shows PersonaSelector)
     expect(
-      screen.getByRole("heading", { name: /pc builder/i }),
+      screen.getByRole("heading", { name: /choose your story/i }),
     ).toBeInTheDocument();
   });
 });

@@ -35,9 +35,9 @@ describe("React Router Configuration", () => {
       </MemoryRouter>,
     );
 
-    // Verify BuilderPage content is displayed
+    // Verify BuilderPage content is displayed (now shows PersonaSelector)
     expect(
-      screen.getByRole("heading", { name: /pc builder/i }),
+      screen.getByRole("heading", { name: /choose your story/i }),
     ).toBeInTheDocument();
   });
 
