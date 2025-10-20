@@ -158,19 +158,29 @@ Then(
 
 When(
   "the user clicks the {string} persona card",
-  async function (personaName: string) {
-    throw new NotImplementedError(
-      `the user clicks the "${personaName}" persona card`,
-    );
+  async function (world: PersonaBuilderWorld, personaName: string) {
+    // Find persona card by its title and click it
+    const card = world.page.getByRole("button", {
+      name: new RegExp(personaName, "i"),
+    });
+    await card.click();
+
+    // Store selected persona for later steps
+    world.selectedPersona = personaName;
   },
 );
 
 Then(
   "the persona card is visually highlighted with an indigo border",
-  async function () {
-    throw new NotImplementedError(
-      "the persona card is visually highlighted with an indigo border",
-    );
+  async function (world: PersonaBuilderWorld) {
+    // Find the selected persona card
+    const personaName = world.selectedPersona || "Competitive Gamer";
+    const card = world.page.getByRole("button", {
+      name: new RegExp(personaName, "i"),
+    });
+
+    // Verify it has the indigo border class
+    await expect(card).toHaveClass(/border-indigo-600/);
   },
 );
 
@@ -230,18 +240,22 @@ Then(
 // Budget Slider Steps
 // ============================================================================
 
-Then("the budget slider appears below the persona cards", async function () {
-  throw new NotImplementedError(
-    "the budget slider appears below the persona cards",
-  );
-});
+Then(
+  "the budget slider appears below the persona cards",
+  async function (world: PersonaBuilderWorld) {
+    // Find the budget slider element
+    const slider = world.page.locator('input[type="range"]');
+    await expect(slider).toBeVisible();
+  },
+);
 
 Then(
   "the slider is set to a default value of ${int}",
-  async function (defaultValue: number) {
-    throw new NotImplementedError(
-      `the slider is set to a default value of $${defaultValue}`,
-    );
+  async function (world: PersonaBuilderWorld, defaultValue: number) {
+    // Find the slider and verify its value
+    const slider = world.page.locator('input[type="range"]');
+    const value = await slider.getAttribute("value");
+    vitestExpect(parseInt(value || "0")).toBe(defaultValue);
   },
 );
 

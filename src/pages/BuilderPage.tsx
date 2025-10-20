@@ -12,14 +12,20 @@ import Layout from "../components/Layout";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import PersonaSelector from "../components/PersonaSelector";
+import BudgetSlider from "../components/BudgetSlider";
 
 export default function BuilderPage() {
   const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(
     null,
   );
+  const [budget, setBudget] = useState<number>(1500);
 
   const handlePersonaSelect = (id: string) => {
     setSelectedPersonaId(id);
+  };
+
+  const handleBudgetChange = (newBudget: number) => {
+    setBudget(newBudget);
   };
 
   return (
@@ -30,6 +36,11 @@ export default function BuilderPage() {
           selectedPersonaId={selectedPersonaId}
           onSelect={handlePersonaSelect}
         />
+
+        {/* Show budget slider only when a persona is selected */}
+        {selectedPersonaId && (
+          <BudgetSlider value={budget} onChange={handleBudgetChange} />
+        )}
       </main>
       <Footer />
     </Layout>
