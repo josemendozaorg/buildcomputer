@@ -108,4 +108,38 @@ describe("PersonaCard Component", () => {
     // Verify handler was called
     expect(handleSelect).toHaveBeenCalledWith("competitive-gamer");
   });
+
+  it('should display "Coming Soon" badge for Custom Build persona', () => {
+    const customBuildPersona = {
+      id: "custom-build",
+      title: "Custom Build",
+      tagline: "I know what I need",
+      examples: "Component-by-component customization",
+      icon: "🔧",
+    };
+
+    render(
+      <PersonaCard
+        persona={customBuildPersona}
+        selected={false}
+        onSelect={() => {}}
+      />,
+    );
+
+    // Verify "Coming Soon" badge is displayed
+    expect(screen.getByText("Coming Soon")).toBeInTheDocument();
+  });
+
+  it('should not display "Coming Soon" badge for other personas', () => {
+    render(
+      <PersonaCard
+        persona={mockPersona}
+        selected={false}
+        onSelect={() => {}}
+      />,
+    );
+
+    // Verify "Coming Soon" badge is NOT displayed
+    expect(screen.queryByText("Coming Soon")).not.toBeInTheDocument();
+  });
 });

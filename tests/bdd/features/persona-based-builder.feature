@@ -110,9 +110,10 @@ Feature: Persona-Based PC Builder MVP
     Then persona cards are displayed in 4 columns in 2 rows
     And build cards can be displayed side-by-side
 
-  @future-feature
+  @ui @future-feature
   Scenario: "Custom Build" persona indicates future feature
-    Given the user is viewing the 8 persona cards
+    Given the user is on the "/build" page
+    And the user is viewing the 8 persona cards
     When the user looks at the "Custom Build" card
     Then the card displays a "Coming Soon" badge
     And clicking it shows a tooltip saying "Component-by-component customization coming soon"

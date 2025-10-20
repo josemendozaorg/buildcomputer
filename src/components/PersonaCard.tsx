@@ -22,12 +22,14 @@ export default function PersonaCard({
   selected,
   onSelect,
 }: PersonaCardProps) {
+  const isComingSoon = persona.id === "custom-build";
+
   return (
     <button
       type="button"
       onClick={() => onSelect(persona.id)}
       className={`
-        w-full text-left p-6 rounded-lg border-2 transition-all duration-200
+        w-full text-left p-6 rounded-lg border-2 transition-all duration-200 relative
         ${
           selected
             ? "border-indigo-600 bg-indigo-50 shadow-md"
@@ -36,6 +38,13 @@ export default function PersonaCard({
         focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
       `}
     >
+      {/* Coming Soon Badge */}
+      {isComingSoon && (
+        <div className="absolute top-2 right-2 bg-amber-500 text-white text-xs font-semibold px-2 py-1 rounded">
+          Coming Soon
+        </div>
+      )}
+
       {/* Icon */}
       <div className="text-4xl mb-3">{persona.icon}</div>
 
