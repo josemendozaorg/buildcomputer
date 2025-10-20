@@ -5,25 +5,31 @@
  * - Select a persona (use case)
  * - Set their budget
  * - View build recommendations
- *
- * This is a minimal placeholder implementation.
  */
 
+import { useState } from "react";
 import Layout from "../components/Layout";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import PersonaSelector from "../components/PersonaSelector";
 
 export default function BuilderPage() {
+  const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(
+    null,
+  );
+
+  const handlePersonaSelect = (id: string) => {
+    setSelectedPersonaId(id);
+  };
+
   return (
     <Layout>
       <Header />
       <main className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
-          PC Builder
-        </h1>
-        <div className="text-center text-gray-600">
-          <p>Builder interface coming soon...</p>
-        </div>
+        <PersonaSelector
+          selectedPersonaId={selectedPersonaId}
+          onSelect={handlePersonaSelect}
+        />
       </main>
       <Footer />
     </Layout>

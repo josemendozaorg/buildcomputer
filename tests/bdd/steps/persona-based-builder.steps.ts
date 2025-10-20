@@ -2,12 +2,20 @@
  * Step Definitions for Persona-Based PC Builder MVP
  *
  * These step definitions map Gherkin steps from persona-based-builder.feature
- * to executable test code. Currently all steps throw NotImplementedError
- * to ensure tests FAIL (RED phase) until the feature is implemented.
+ * to executable test code using Playwright for browser automation.
  */
 
-import { Given, When, Then } from "quickpickle";
-import { expect } from "vitest";
+import { Given, When, Then, Before } from "quickpickle";
+import { expect as vitestExpect } from "vitest";
+import { expect } from "@playwright/test";
+import { PlaywrightWorld } from "@quickpickle/playwright";
+import "@quickpickle/playwright/world";
+
+interface PersonaBuilderWorld extends PlaywrightWorld {
+  devServerUrl?: string;
+  selectedPersona?: string;
+  budgetValue?: number;
+}
 
 class NotImplementedError extends Error {
   constructor(step: string) {
@@ -16,42 +24,88 @@ class NotImplementedError extends Error {
   }
 }
 
+// Initialize browser before UI scenarios
+Before({ tags: "@ui" }, async function (this: PersonaBuilderWorld) {
+  // Ensure browser/page is initialized for UI tests
+  if (!this.page && this.init) {
+    await this.init();
+  }
+  // Set dev server URL
+  this.devServerUrl = "http://localhost:5173";
+});
+
 // ============================================================================
 // Background Steps
 // ============================================================================
 
-Given("the BuildComputer application is running", async function () {
-  // Navigate to the application base URL
-  throw new NotImplementedError("the BuildComputer application is running");
-});
+Given(
+  "the BuildComputer application is running",
+  async function (world: PersonaBuilderWorld) {
+    // Verify dev server is accessible
+    const url =
+      world.devServerUrl || world.worldConfig?.host || "http://localhost:5173";
+    const response = await fetch(url);
+    vitestExpect(response.ok).toBe(true);
+  },
+);
 
 // ============================================================================
 // Navigation Steps
 // ============================================================================
 
-Given("the user is on the BuildComputer landing page", async function () {
-  throw new NotImplementedError(
-    "the user is on the BuildComputer landing page",
-  );
-});
+Given(
+  "the user is on the BuildComputer landing page",
+  async function (world: PersonaBuilderWorld) {
+    // Navigate to landing page
+    const url =
+      world.devServerUrl || world.worldConfig?.host || "http://localhost:5173";
+    await world.page.goto(url, { waitUntil: "domcontentloaded" });
 
-Given("the user is on the {string} page", async function (route: string) {
-  throw new NotImplementedError(`the user is on the "${route}" page`);
-});
+    // Verify page is loaded by checking for header
+    const header = world.page.locator("header").first();
+    await expect(header).toBeVisible();
+  },
+);
+
+Given(
+  "the user is on the {string} page",
+  async function (world: PersonaBuilderWorld, route: string) {
+    // Navigate to specific route
+    const baseUrl =
+      world.devServerUrl || world.worldConfig?.host || "http://localhost:5173";
+    const url = `${baseUrl}${route}`;
+    await world.page.goto(url, { waitUntil: "domcontentloaded" });
+
+    // Verify navigation succeeded by checking URL
+    await expect(world.page).toHaveURL(url);
+  },
+);
 
 When(
   "the user clicks the {string} button",
-  async function (buttonText: string) {
-    throw new NotImplementedError(`the user clicks the "${buttonText}" button`);
+  async function (world: PersonaBuilderWorld, buttonText: string) {
+    // Find button or link by text and click it
+    // First try to find as button, if not found try as link (for Link components styled as buttons)
+    let element = world.page.getByRole("button", { name: buttonText });
+    const count = await element.count();
+
+    if (count === 0) {
+      // Try as link (React Router Link components)
+      element = world.page.getByRole("link", { name: buttonText });
+    }
+
+    await element.click();
   },
 );
 
 Then(
   "the browser navigates to the {string} route",
-  async function (route: string) {
-    throw new NotImplementedError(
-      `the browser navigates to the "${route}" route`,
-    );
+  async function (world: PersonaBuilderWorld, route: string) {
+    // Verify URL contains the expected route
+    const baseUrl =
+      world.devServerUrl || world.worldConfig?.host || "http://localhost:5173";
+    const expectedUrl = `${baseUrl}${route}`;
+    await expect(world.page).toHaveURL(expectedUrl);
   },
 );
 
@@ -72,13 +126,35 @@ When("the page loads", async function () {
 // Persona Selection Steps
 // ============================================================================
 
-Then("the persona selection interface is displayed", async function () {
-  throw new NotImplementedError("the persona selection interface is displayed");
-});
+Then(
+  "the persona selection interface is displayed",
+  async function (world: PersonaBuilderWorld) {
+    // Verify the "Choose Your Story" heading is visible
+    const heading = world.page.locator('h2:has-text("Choose Your Story")');
+    await expect(heading).toBeVisible();
 
-Then("{int} persona cards are visible", async function (count: number) {
-  throw new NotImplementedError(`${count} persona cards are visible`);
-});
+    // Verify the grid container exists
+    const grid = world.page.locator(".grid");
+    await expect(grid).toBeVisible();
+  },
+);
+
+Then(
+  "{int} persona cards are visible",
+  async function (world: PersonaBuilderWorld, count: number) {
+    // Find all persona cards (buttons containing persona titles)
+    const cards = world.page.locator("button:has(h3)");
+
+    // Verify the count matches expected
+    await expect(cards).toHaveCount(count);
+
+    // Verify all cards are visible
+    const cardCount = await cards.count();
+    for (let i = 0; i < cardCount; i++) {
+      await expect(cards.nth(i)).toBeVisible();
+    }
+  },
+);
 
 When(
   "the user clicks the {string} persona card",

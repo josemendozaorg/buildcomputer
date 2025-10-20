@@ -7,7 +7,7 @@ Feature: Persona-Based PC Builder MVP
   Background:
     Given the BuildComputer application is running
 
-  @navigation
+  @ui @navigation
   Scenario: User navigates to PC Builder from landing page
     Given the user is on the BuildComputer landing page
     When the user clicks the "Get Started" button
@@ -15,7 +15,7 @@ Feature: Persona-Based PC Builder MVP
     And the persona selection interface is displayed
     And 8 persona cards are visible
 
-  @persona-selection
+  @ui @persona-selection
   Scenario: User selects a persona and sees budget slider
     Given the user is on the "/build" page
     When the user clicks the "Competitive Gamer" persona card
