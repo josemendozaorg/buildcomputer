@@ -23,7 +23,7 @@ Feature: Persona-Based PC Builder MVP
     And the budget slider appears below the persona cards
     And the slider is set to a default value of $1500
 
-  @budget @build-recommendations
+  @ui @budget @build-recommendations
   Scenario: User adjusts budget and sees build recommendations
     Given the user has selected the "Competitive Gamer" persona
     And the budget slider is visible

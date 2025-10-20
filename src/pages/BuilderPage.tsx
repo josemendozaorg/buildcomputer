@@ -13,6 +13,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import PersonaSelector from "../components/PersonaSelector";
 import BudgetSlider from "../components/BudgetSlider";
+import BuildRecommendations from "../components/BuildRecommendations";
 
 export default function BuilderPage() {
   const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(
@@ -39,7 +40,15 @@ export default function BuilderPage() {
 
         {/* Show budget slider only when a persona is selected */}
         {selectedPersonaId && (
-          <BudgetSlider value={budget} onChange={handleBudgetChange} />
+          <>
+            <BudgetSlider value={budget} onChange={handleBudgetChange} />
+
+            {/* Show build recommendations when persona and budget are set */}
+            <BuildRecommendations
+              personaId={selectedPersonaId}
+              budget={budget}
+            />
+          </>
         )}
       </main>
       <Footer />

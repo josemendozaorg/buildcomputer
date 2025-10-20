@@ -189,10 +189,18 @@ Then(
 
 Given(
   "the user has selected the {string} persona",
-  async function (personaName: string) {
-    throw new NotImplementedError(
-      `the user has selected the "${personaName}" persona`,
-    );
+  async function (world: PersonaBuilderWorld, personaName: string) {
+    // Navigate to the builder page
+    const url =
+      world.devServerUrl || world.worldConfig?.host || "http://localhost:5173";
+    await world.page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
+
+    // Click the persona card
+    const card = world.page.getByRole("button", {
+      name: new RegExp(personaName, "i"),
+    });
+    await card.click();
+    world.selectedPersona = personaName;
   },
 );
 
@@ -274,13 +282,30 @@ Then(
   },
 );
 
-Given("the budget slider is visible", async function () {
-  throw new NotImplementedError("the budget slider is visible");
-});
+Given(
+  "the budget slider is visible",
+  async function (world: PersonaBuilderWorld) {
+    // Verify the budget slider is visible on the page
+    const slider = world.page.locator('input[type="range"]');
+    await expect(slider).toBeVisible();
+  },
+);
 
-When("the user drags the slider to ${int}", async function (value: number) {
-  throw new NotImplementedError(`the user drags the slider to $${value}`);
-});
+When(
+  "the user drags the slider to ${int}",
+  async function (world: PersonaBuilderWorld, value: number) {
+    // Find the budget slider and change its value using Playwright's fill method
+    const slider = world.page.locator('input[type="range"]');
+
+    // Playwright's fill() should work for range inputs
+    await slider.fill(value.toString());
+
+    // Give React a moment to update the DOM
+    await world.page.waitForTimeout(100);
+
+    world.budgetValue = value;
+  },
+);
 
 When(
   "the user sets the budget slider to ${int}",
@@ -293,10 +318,25 @@ When(
 
 Then(
   "the budget value display updates to show {string}",
-  async function (displayValue: string) {
-    throw new NotImplementedError(
-      `the budget value display updates to show "${displayValue}"`,
-    );
+  async function (world: PersonaBuilderWorld, displayValue: string) {
+    // Verify the budget display shows the correct value
+    // Account for Intl.NumberFormat adding commas (e.g., "$2,000" instead of "$2000")
+    const formattedValue = displayValue.replace(/\$(\d+)/, (match, p1) => {
+      const num = parseInt(p1);
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(num);
+    });
+
+    // Wait for the budget display to update (specifically the large budget display)
+    // Use a more specific selector to avoid matching build card prices
+    const budgetDisplay = world.page
+      .locator(".text-4xl")
+      .filter({ hasText: formattedValue });
+    await expect(budgetDisplay).toBeVisible();
   },
 );
 
@@ -331,28 +371,64 @@ Then("the slider value increases and decreases accordingly", async function () {
 
 Then(
   "{int} build recommendation cards appear instantly within {int}ms",
-  async function (cardCount: number, timeMs: number) {
-    throw new NotImplementedError(
-      `${cardCount} build recommendation cards appear instantly within ${timeMs}ms`,
-    );
+  async function (
+    world: PersonaBuilderWorld,
+    cardCount: number,
+    timeMs: number,
+  ) {
+    // Wait for build recommendation cards to appear
+    const startTime = Date.now();
+    const buildCards = world.page.locator('[data-testid="build-card"]');
+
+    // Wait for the expected number of cards
+    await expect(buildCards).toHaveCount(cardCount, { timeout: timeMs });
+
+    // Verify they appeared within the time limit
+    const elapsed = Date.now() - startTime;
+    vitestExpect(elapsed).toBeLessThan(timeMs);
   },
 );
 
 Then(
   "the cards show {string}, {string}, and {string}",
-  async function (card1: string, card2: string, card3: string) {
-    throw new NotImplementedError(
-      `the cards show "${card1}", "${card2}", and "${card3}"`,
-    );
+  async function (
+    world: PersonaBuilderWorld,
+    card1: string,
+    card2: string,
+    card3: string,
+  ) {
+    // Verify each card title is present
+    const titles = [card1, card2, card3];
+    for (const title of titles) {
+      const cardTitle = world.page.locator(
+        `[data-testid="build-card"]:has-text("${title}")`,
+      );
+      await expect(cardTitle).toBeVisible();
+    }
   },
 );
 
 Then(
   "each card displays a total price and capability description",
-  async function () {
-    throw new NotImplementedError(
-      "each card displays a total price and capability description",
-    );
+  async function (world: PersonaBuilderWorld) {
+    // Get all build cards
+    const buildCards = world.page.locator('[data-testid="build-card"]');
+    const count = await buildCards.count();
+
+    // Verify each card has a price and description
+    for (let i = 0; i < count; i++) {
+      const card = buildCards.nth(i);
+
+      // Check for price (should contain $ symbol)
+      const price = card.locator('[data-testid="build-price"]');
+      await expect(price).toBeVisible();
+      const priceText = await price.textContent();
+      vitestExpect(priceText).toContain("$");
+
+      // Check for capability description
+      const description = card.locator('[data-testid="build-description"]');
+      await expect(description).toBeVisible();
+    }
   },
 );
 
