@@ -9,13 +9,7 @@
  * - Click handling
  */
 
-interface Persona {
-  id: string;
-  title: string;
-  tagline: string;
-  examples: string;
-  icon: string;
-}
+import { Persona } from "../types/persona";
 
 interface PersonaCardProps {
   persona: Persona;
