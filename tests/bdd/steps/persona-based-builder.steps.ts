@@ -206,20 +206,52 @@ Given(
 
 Given(
   "the user has selected {string} with budget ${int}",
-  async function (personaName: string, budget: number) {
-    throw new NotImplementedError(
-      `the user has selected "${personaName}" with budget $${budget}`,
-    );
+  async function (
+    world: PersonaBuilderWorld,
+    personaName: string,
+    budget: number,
+  ) {
+    // Navigate to the builder page
+    const url =
+      world.devServerUrl || world.worldConfig?.host || "http://localhost:5173";
+    await world.page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
+
+    // Click the persona card
+    const card = world.page.getByRole("button", {
+      name: new RegExp(personaName, "i"),
+    });
+    await card.click();
+    world.selectedPersona = personaName;
+
+    // Set the budget slider
+    const slider = world.page.locator('input[type="range"]');
+    await slider.fill(budget.toString());
+    await world.page.waitForTimeout(200);
+    world.budgetValue = budget;
   },
 );
 
-Then("the {string} card is deselected", async function (personaName: string) {
-  throw new NotImplementedError(`the "${personaName}" card is deselected`);
-});
+Then(
+  "the {string} card is deselected",
+  async function (world: PersonaBuilderWorld, personaName: string) {
+    // Verify the card no longer has the selected border
+    const card = world.page.getByRole("button", {
+      name: new RegExp(personaName, "i"),
+    });
+    await expect(card).not.toHaveClass(/border-indigo-600/);
+  },
+);
 
-Then("the {string} card is highlighted", async function (personaName: string) {
-  throw new NotImplementedError(`the "${personaName}" card is highlighted`);
-});
+Then(
+  "the {string} card is highlighted",
+  async function (world: PersonaBuilderWorld, personaName: string) {
+    // Verify the card has the selected border
+    const card = world.page.getByRole("button", {
+      name: new RegExp(personaName, "i"),
+    });
+    await expect(card).toHaveClass(/border-indigo-600/);
+  },
+);
 
 Given(
   "the user is viewing the {int} persona cards",
@@ -432,25 +464,63 @@ Then(
   },
 );
 
-Given("build recommendations are displayed", async function () {
-  throw new NotImplementedError("build recommendations are displayed");
-});
+Given(
+  "build recommendations are displayed",
+  async function (world: PersonaBuilderWorld) {
+    // Verify that 3 build cards are visible
+    const buildCards = world.page.locator('[data-testid="build-card"]');
+    await expect(buildCards).toHaveCount(3, { timeout: 5000 });
+
+    // Verify all cards are visible
+    for (let i = 0; i < 3; i++) {
+      await expect(buildCards.nth(i)).toBeVisible();
+    }
+  },
+);
 
 Then(
   "the build recommendations update instantly to show creator-optimized builds",
-  async function () {
-    throw new NotImplementedError(
-      "the build recommendations update instantly to show creator-optimized builds",
+  async function (world: PersonaBuilderWorld) {
+    // Verify build cards still exist (3 cards)
+    const buildCards = world.page.locator('[data-testid="build-card"]');
+    await expect(buildCards).toHaveCount(3, { timeout: 2000 });
+
+    // Verify descriptions have changed to creator-focused content
+    const descriptions = world.page.locator(
+      '[data-testid="build-description"]',
+    );
+    const firstDescription = await descriptions.first().textContent();
+
+    // Creator descriptions should contain keywords related to content creation
+    vitestExpect(firstDescription?.toLowerCase()).toMatch(
+      /video editing|content creation|rendering|creator/i,
     );
   },
 );
 
 Then(
   "the capability descriptions change to reflect content creation use cases",
-  async function () {
-    throw new NotImplementedError(
-      "the capability descriptions change to reflect content creation use cases",
+  async function (world: PersonaBuilderWorld) {
+    // Get all build descriptions
+    const descriptions = world.page.locator(
+      '[data-testid="build-description"]',
     );
+    const count = await descriptions.count();
+
+    // Verify at least one description mentions content creation use cases
+    let hasContentCreationDescription = false;
+    for (let i = 0; i < count; i++) {
+      const text = await descriptions.nth(i).textContent();
+      if (
+        text &&
+        /video editing|content creation|rendering|creator|3d|4k/i.test(text)
+      ) {
+        hasContentCreationDescription = true;
+        break;
+      }
+    }
+
+    vitestExpect(hasContentCreationDescription).toBe(true);
   },
 );
 
