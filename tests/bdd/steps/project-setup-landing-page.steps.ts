@@ -1140,12 +1140,12 @@ When(
 Then(
   "the button should activate \\(same as clicking)",
   async function (world: BuildComputerWorld) {
-    // Verify button is still visible and enabled after Enter press
-    const button = world.page.getByRole("button", { name: "Get Started" });
-    await expect(button).toBeVisible();
+    // Verify button activated by checking navigation occurred
+    // After pressing Enter on "Get Started", should navigate to /build
+    await world.page.waitForTimeout(500);
 
-    const isEnabled = await button.isEnabled();
-    vitestExpect(isEnabled).toBe(true);
+    const currentUrl = world.page.url();
+    vitestExpect(currentUrl).toContain("/build");
   },
 );
 
