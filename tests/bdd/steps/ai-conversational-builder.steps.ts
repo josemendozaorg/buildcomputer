@@ -292,43 +292,60 @@ Then(
 Given(
   "user is conversing with AI about requirements",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "user is conversing with AI about requirements",
-    );
+    const url = world.devServerUrl || "http://localhost:5173";
+    await world.page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
+
+    // Click "Talk to AI Builder" button
+    const talkButton = world.page.getByRole("button", {
+      name: /Talk to AI Builder/i,
+    });
+    await expect(talkButton).toBeVisible();
+    await talkButton.click();
+
+    // Verify chat interface is open
+    const chatRegion = world.page.getByRole("region", { name: /AI Chat/i });
+    await expect(chatRegion).toBeVisible();
   },
 );
 
 When(
   'AI determines user matches "Competitive Gamer" persona',
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      'AI determines user matches "Competitive Gamer" persona',
-    );
+    // Send a message that will trigger competitive gamer persona detection
+    const input = world.page.getByPlaceholderText(/Type your message/i);
+    await input.fill("I play Valorant competitively and need high FPS");
+    const sendButton = world.page.getByRole("button", { name: /Send/i });
+    await sendButton.click();
+
+    // Wait for AI response (with timeout for AI processing delay)
+    await world.page.waitForTimeout(600);
   },
 );
 
 Then(
   /AI should suggest "(.*)"/,
   async function (world: AIBuilderWorld, suggestion: string) {
-    throw new NotImplementedError(`AI should suggest "${suggestion}"`);
+    // Check that the AI response contains the suggestion text
+    const aiMessage = world.page.getByText(new RegExp(suggestion, "i"));
+    await expect(aiMessage).toBeVisible();
   },
 );
 
 Then(
   "provide quick-reply chip to accept suggestion",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "provide quick-reply chip to accept suggestion",
-    );
+    // Verify accept chip is visible
+    const acceptChip = world.page.getByTestId("accept-persona-suggestion");
+    await expect(acceptChip).toBeVisible();
   },
 );
 
 Then(
   "provide option to continue custom conversation",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "provide option to continue custom conversation",
-    );
+    // Verify decline chip is visible
+    const declineChip = world.page.getByTestId("decline-persona-suggestion");
+    await expect(declineChip).toBeVisible();
   },
 );
 

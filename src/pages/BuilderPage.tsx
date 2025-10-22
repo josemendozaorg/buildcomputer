@@ -50,6 +50,12 @@ export default function BuilderPage() {
     setSavedMessages(messages);
   };
 
+  const handlePersonaSuggestionAccept = (personaId: string) => {
+    // Close chat and select the suggested persona
+    setShowAIChat(false);
+    setSelectedPersonaId(personaId);
+  };
+
   return (
     <Layout>
       <Header />
@@ -160,6 +166,7 @@ export default function BuilderPage() {
               onQuickSelectPersona={handleQuickSelectPersona}
               onMessagesChange={handleMessagesChange}
               savedMessages={savedMessages}
+              onPersonaSuggestionAccept={handlePersonaSuggestionAccept}
               initialContext={{
                 persona: selectedPersonaId || undefined,
                 budget,
