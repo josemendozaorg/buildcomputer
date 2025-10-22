@@ -39,6 +39,12 @@ export default function BuilderPage() {
     setShowAIChat(false);
   };
 
+  const handlePersonaSuggestionAccept = (personaId: string) => {
+    // Close chat and select the suggested persona
+    setShowAIChat(false);
+    setSelectedPersonaId(personaId);
+  };
+
   return (
     <Layout>
       <Header />
@@ -122,6 +128,7 @@ export default function BuilderPage() {
           <div className="fixed inset-0 z-50 bg-white">
             <ChatInterface
               onClose={handleCloseAIChat}
+              onPersonaSuggestionAccept={handlePersonaSuggestionAccept}
               initialContext={{
                 persona: selectedPersonaId || undefined,
                 budget,

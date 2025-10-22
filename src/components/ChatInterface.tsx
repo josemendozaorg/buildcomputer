@@ -6,6 +6,10 @@
  */
 
 import { useState } from "react";
+import {
+  generateAIResponse,
+  PersonaSuggestion,
+} from "../services/mockAIService";
 
 interface Message {
   id: string;
@@ -17,6 +21,7 @@ interface Message {
 interface ChatInterfaceProps {
   onMessage?: (message: string) => void;
   onClose?: () => void;
+  onPersonaSuggestionAccept?: (personaId: string) => void;
   initialContext?: {
     persona?: string;
     budget?: number;
@@ -26,6 +31,7 @@ interface ChatInterfaceProps {
 export default function ChatInterface({
   onMessage,
   onClose,
+  onPersonaSuggestionAccept,
   initialContext,
 }: ChatInterfaceProps = {}) {
   // Generate initial messages based on context
@@ -72,27 +78,51 @@ export default function ChatInterface({
 
   const [messages, setMessages] = useState<Message[]>(getInitialMessages());
   const [inputValue, setInputValue] = useState("");
+  const [personaSuggestion, setPersonaSuggestion] =
+    useState<PersonaSuggestion | null>(null);
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
+
+    const messageContent = inputValue;
 
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: inputValue,
+      content: messageContent,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
 
+    // Clear input immediately for better UX
+    setInputValue("");
+
+    // Generate AI response
+    setTimeout(() => {
+      const aiResponse = generateAIResponse(messageContent);
+
+      // Add AI message
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "ai",
+        content: aiResponse.content,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+
+      // Set persona suggestion if detected
+      if (aiResponse.suggestions) {
+        setPersonaSuggestion(aiResponse.suggestions);
+      }
+    }, 500); // Small delay to simulate AI thinking
+
     // Call callback if provided
     if (onMessage) {
-      onMessage(inputValue);
+      onMessage(messageContent);
     }
-
-    // Clear input
-    setInputValue("");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -117,6 +147,36 @@ export default function ChatInterface({
     if (onMessage) {
       onMessage(value);
     }
+  };
+
+  const handleAcceptPersona = () => {
+    if (!personaSuggestion) return;
+
+    // Clear the suggestion
+    setPersonaSuggestion(null);
+
+    // Call the callback to switch to persona mode
+    if (onPersonaSuggestionAccept) {
+      onPersonaSuggestionAccept(personaSuggestion.personaId);
+    }
+  };
+
+  const handleDeclinePersona = () => {
+    if (!personaSuggestion) return;
+
+    // Clear the suggestion
+    setPersonaSuggestion(null);
+
+    // Add AI message confirming custom conversation
+    const aiMessage: Message = {
+      id: Date.now().toString(),
+      role: "ai",
+      content:
+        "No problem! Let's continue building your custom PC. Tell me more about your needs.",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, aiMessage]);
   };
 
   return (
@@ -164,26 +224,50 @@ export default function ChatInterface({
 
       {/* Quick Reply Chips */}
       <div className="px-4 py-2 border-t bg-gray-50">
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => handleChipClick("Gaming")}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
-          >
-            Gaming
-          </button>
-          <button
-            onClick={() => handleChipClick("Work")}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
-          >
-            Work
-          </button>
-          <button
-            onClick={() => handleChipClick("Content Creation")}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
-          >
-            Content Creation
-          </button>
-        </div>
+        {personaSuggestion ? (
+          <div className="space-y-2">
+            <p className="text-sm text-gray-700 font-medium">
+              {personaSuggestion.message}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleAcceptPersona}
+                className="px-4 py-2 bg-green-600 text-white rounded-full text-sm hover:bg-green-700 transition-colors font-semibold"
+                data-testid="accept-persona-suggestion"
+              >
+                {personaSuggestion.acceptLabel}
+              </button>
+              <button
+                onClick={handleDeclinePersona}
+                className="px-4 py-2 bg-gray-600 text-white rounded-full text-sm hover:bg-gray-700 transition-colors"
+                data-testid="decline-persona-suggestion"
+              >
+                {personaSuggestion.declineLabel}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => handleChipClick("Gaming")}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+            >
+              Gaming
+            </button>
+            <button
+              onClick={() => handleChipClick("Work")}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+            >
+              Work
+            </button>
+            <button
+              onClick={() => handleChipClick("Content Creation")}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+            >
+              Content Creation
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Input Area */}
