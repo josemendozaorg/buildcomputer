@@ -41,10 +41,8 @@ Before({ tags: "@ui" }, async function (this: AIBuilderWorld) {
 Given(
   "the AI conversational builder feature is enabled",
   async function (world: AIBuilderWorld) {
-    // Placeholder: Verify feature flag or configuration
-    throw new NotImplementedError(
-      "the AI conversational builder feature is enabled",
-    );
+    // Feature is enabled by default - no configuration needed
+    // This step exists for documentation/clarity in the feature file
   },
 );
 
@@ -55,38 +53,58 @@ Given(
 Given("user is on the builder page", async function (world: AIBuilderWorld) {
   const url = world.devServerUrl || "http://localhost:5173";
   await world.page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
-  throw new NotImplementedError("user is on the builder page");
+
+  // Verify we're on the builder page
+  await expect(world.page).toHaveURL(/\/build/);
 });
 
 When(
   'user clicks "Talk to AI Builder" button',
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError('user clicks "Talk to AI Builder" button');
+    const button = world.page.getByRole("button", {
+      name: /Talk to AI Builder/i,
+    });
+    await expect(button).toBeVisible();
+    await button.click();
   },
 );
 
 Then(
   "chat interface should open with greeting message",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "chat interface should open with greeting message",
+    // Wait for chat interface to appear
+    const chatRegion = world.page.getByRole("region", { name: /AI Chat/i });
+    await expect(chatRegion).toBeVisible();
+
+    // Verify greeting message
+    const greeting = world.page.getByText(
+      /Hi! I'm here to help you build the perfect PC/i,
     );
+    await expect(greeting).toBeVisible();
   },
 );
 
 Then(
   "AI should ask first question about use case",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "AI should ask first question about use case",
-    );
+    const question = world.page.getByText(/What will you mainly use it for?/i);
+    await expect(question).toBeVisible();
   },
 );
 
 Then(
   "quick-reply chips should be visible",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("quick-reply chips should be visible");
+    // Verify quick-reply chips for use case options
+    const gamingChip = world.page.getByRole("button", { name: /^Gaming$/i });
+    const workChip = world.page.getByRole("button", { name: /^Work$/i });
+    const contentCreationChip = world.page.getByRole("button", {
+      name: /Content Creation/i,
+    });
+
+    await expect(gamingChip).toBeVisible();
+    await expect(workChip).toBeVisible();
+    await expect(contentCreationChip).toBeVisible();
   },
 );
 
