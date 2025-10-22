@@ -5,7 +5,12 @@
  * with conversational interaction and quick-reply chips.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  initConversationState,
+  getNextConversationStep,
+  ConversationState,
+} from "../services/conversationService";
 
 interface Message {
   id: string;
@@ -70,29 +75,111 @@ export default function ChatInterface({
     ];
   };
 
-  const [messages, setMessages] = useState<Message[]>(getInitialMessages());
+  // Load persisted state or use initial values
+  const loadPersistedState = (): {
+    messages: Message[];
+    conversationState: ConversationState;
+    dynamicChips: string[];
+  } => {
+    try {
+      const savedMessages = localStorage.getItem("chatMessages");
+      const savedConversation = localStorage.getItem("conversationState");
+      const savedChips = localStorage.getItem("dynamicChips");
+
+      return {
+        messages: savedMessages
+          ? (JSON.parse(savedMessages) as Message[])
+          : getInitialMessages(),
+        conversationState: savedConversation
+          ? (JSON.parse(savedConversation) as ConversationState)
+          : initConversationState(),
+        dynamicChips: savedChips
+          ? (JSON.parse(savedChips) as string[])
+          : ["Gaming", "Work", "Content Creation"],
+      };
+    } catch {
+      return {
+        messages: getInitialMessages(),
+        conversationState: initConversationState(),
+        dynamicChips: ["Gaming", "Work", "Content Creation"],
+      };
+    }
+  };
+
+  const persistedState = loadPersistedState();
+  const [messages, setMessages] = useState<Message[]>(persistedState.messages);
   const [inputValue, setInputValue] = useState("");
+  const [conversationState, setConversationState] = useState<ConversationState>(
+    persistedState.conversationState,
+  );
+  const [dynamicChips, setDynamicChips] = useState<string[]>(
+    persistedState.dynamicChips,
+  );
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("chatMessages", JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "conversationState",
+      JSON.stringify(conversationState),
+    );
+  }, [conversationState]);
+
+  useEffect(() => {
+    localStorage.setItem("dynamicChips", JSON.stringify(dynamicChips));
+  }, [dynamicChips]);
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
+
+    const messageContent = inputValue;
 
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: inputValue,
+      content: messageContent,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
 
+    // Clear input immediately for better UX
+    setInputValue("");
+
+    // Generate AI response using conversation service
+    setTimeout(() => {
+      const response = getNextConversationStep(
+        conversationState,
+        messageContent,
+      );
+
+      // Add AI message
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "ai",
+        content: response.message,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+
+      // Update dynamic chips if provided
+      if (response.chips) {
+        setDynamicChips(response.chips);
+      }
+
+      // Update conversation state
+      setConversationState({ ...conversationState });
+    }, 500); // Small delay to simulate AI thinking
+
     // Call callback if provided
     if (onMessage) {
-      onMessage(inputValue);
+      onMessage(messageContent);
     }
-
-    // Clear input
-    setInputValue("");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -103,7 +190,6 @@ export default function ChatInterface({
   };
 
   const handleChipClick = (value: string) => {
-    setInputValue(value);
     // Auto-send when chip is clicked
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -114,9 +200,48 @@ export default function ChatInterface({
 
     setMessages((prev) => [...prev, userMessage]);
 
+    // Generate AI response using conversation service
+    setTimeout(() => {
+      const response = getNextConversationStep(conversationState, value);
+
+      // Add AI message
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "ai",
+        content: response.message,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+
+      // Update dynamic chips if provided
+      if (response.chips) {
+        setDynamicChips(response.chips);
+      }
+
+      // Update conversation state
+      setConversationState({ ...conversationState });
+    }, 500); // Small delay to simulate AI thinking
+
     if (onMessage) {
       onMessage(value);
     }
+  };
+
+  const handleStartOver = () => {
+    // Reset conversation state
+    setConversationState(initConversationState());
+
+    // Reset messages to initial state
+    setMessages(getInitialMessages());
+
+    // Reset dynamic chips to initial state
+    setDynamicChips(["Gaming", "Work", "Content Creation"]);
+
+    // Clear persisted state
+    localStorage.removeItem("chatMessages");
+    localStorage.removeItem("conversationState");
+    localStorage.removeItem("dynamicChips");
   };
 
   return (
@@ -128,15 +253,24 @@ export default function ChatInterface({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="text-lg font-semibold">AI PC Builder</h2>
-        {onClose && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-            aria-label="Close chat"
+            onClick={handleStartOver}
+            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+            aria-label="Start Over"
           >
-            <span className="sr-only">Close</span>✕
+            Start Over
           </button>
-        )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="Close chat"
+            >
+              <span className="sr-only">Close</span>✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Message History */}
@@ -165,24 +299,15 @@ export default function ChatInterface({
       {/* Quick Reply Chips */}
       <div className="px-4 py-2 border-t bg-gray-50">
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => handleChipClick("Gaming")}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
-          >
-            Gaming
-          </button>
-          <button
-            onClick={() => handleChipClick("Work")}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
-          >
-            Work
-          </button>
-          <button
-            onClick={() => handleChipClick("Content Creation")}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
-          >
-            Content Creation
-          </button>
+          {dynamicChips.map((chip, index) => (
+            <button
+              key={index}
+              onClick={() => handleChipClick(chip)}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+            >
+              {chip}
+            </button>
+          ))}
         </div>
       </div>
 
