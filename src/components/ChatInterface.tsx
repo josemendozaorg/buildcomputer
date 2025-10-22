@@ -182,6 +182,17 @@ export default function ChatInterface({
     }
   };
 
+  const handleStartOver = () => {
+    // Reset conversation state
+    setConversationState(initConversationState());
+
+    // Reset messages to initial state
+    setMessages(getInitialMessages());
+
+    // Reset dynamic chips to initial state
+    setDynamicChips(["Gaming", "Work", "Content Creation"]);
+  };
+
   return (
     <div
       className="flex flex-col h-full bg-white"
@@ -191,15 +202,24 @@ export default function ChatInterface({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="text-lg font-semibold">AI PC Builder</h2>
-        {onClose && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-            aria-label="Close chat"
+            onClick={handleStartOver}
+            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+            aria-label="Start Over"
           >
-            <span className="sr-only">Close</span>✕
+            Start Over
           </button>
-        )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="Close chat"
+            >
+              <span className="sr-only">Close</span>✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Message History */}
