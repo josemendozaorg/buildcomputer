@@ -5,7 +5,7 @@
  * with conversational interaction and quick-reply chips.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   initConversationState,
   getNextConversationStep,
@@ -75,16 +75,62 @@ export default function ChatInterface({
     ];
   };
 
-  const [messages, setMessages] = useState<Message[]>(getInitialMessages());
+  // Load persisted state or use initial values
+  const loadPersistedState = (): {
+    messages: Message[];
+    conversationState: ConversationState;
+    dynamicChips: string[];
+  } => {
+    try {
+      const savedMessages = localStorage.getItem("chatMessages");
+      const savedConversation = localStorage.getItem("conversationState");
+      const savedChips = localStorage.getItem("dynamicChips");
+
+      return {
+        messages: savedMessages
+          ? (JSON.parse(savedMessages) as Message[])
+          : getInitialMessages(),
+        conversationState: savedConversation
+          ? (JSON.parse(savedConversation) as ConversationState)
+          : initConversationState(),
+        dynamicChips: savedChips
+          ? (JSON.parse(savedChips) as string[])
+          : ["Gaming", "Work", "Content Creation"],
+      };
+    } catch {
+      return {
+        messages: getInitialMessages(),
+        conversationState: initConversationState(),
+        dynamicChips: ["Gaming", "Work", "Content Creation"],
+      };
+    }
+  };
+
+  const persistedState = loadPersistedState();
+  const [messages, setMessages] = useState<Message[]>(persistedState.messages);
   const [inputValue, setInputValue] = useState("");
   const [conversationState, setConversationState] = useState<ConversationState>(
-    initConversationState(),
+    persistedState.conversationState,
   );
-  const [dynamicChips, setDynamicChips] = useState<string[]>([
-    "Gaming",
-    "Work",
-    "Content Creation",
-  ]);
+  const [dynamicChips, setDynamicChips] = useState<string[]>(
+    persistedState.dynamicChips,
+  );
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("chatMessages", JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "conversationState",
+      JSON.stringify(conversationState),
+    );
+  }, [conversationState]);
+
+  useEffect(() => {
+    localStorage.setItem("dynamicChips", JSON.stringify(dynamicChips));
+  }, [dynamicChips]);
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
@@ -191,6 +237,11 @@ export default function ChatInterface({
 
     // Reset dynamic chips to initial state
     setDynamicChips(["Gaming", "Work", "Content Creation"]);
+
+    // Clear persisted state
+    localStorage.removeItem("chatMessages");
+    localStorage.removeItem("conversationState");
+    localStorage.removeItem("dynamicChips");
   };
 
   return (
