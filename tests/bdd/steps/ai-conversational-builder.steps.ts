@@ -207,35 +207,85 @@ Then(
 Given(
   "user is in the middle of AI conversation",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("user is in the middle of AI conversation");
+    const url = world.devServerUrl || "http://localhost:5173";
+    await world.page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
+
+    // Click "Talk to AI Builder" button
+    const talkButton = world.page.getByRole("button", {
+      name: /Talk to AI Builder/i,
+    });
+    await expect(talkButton).toBeVisible();
+    await talkButton.click();
+
+    // Verify chat interface is open
+    const chatRegion = world.page.getByRole("region", { name: /AI Chat/i });
+    await expect(chatRegion).toBeVisible();
+
+    // Send a message to simulate being in the middle of conversation
+    const input = world.page.getByPlaceholderText(/Type your message/i);
+    await input.fill("I want to build a gaming PC");
+    const sendButton = world.page.getByRole("button", { name: /Send/i });
+    await sendButton.click();
+
+    // Verify message was sent
+    const userMessage = world.page.getByText("I want to build a gaming PC");
+    await expect(userMessage).toBeVisible();
   },
 );
 
 When(
   'user clicks "Quick Select Persona" button',
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError('user clicks "Quick Select Persona" button');
+    const quickSelectButton = world.page.getByRole("button", {
+      name: /Quick Select Persona/i,
+    });
+    await expect(quickSelectButton).toBeVisible();
+    await quickSelectButton.click();
   },
 );
 
 Then(
   "persona cards should be displayed",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("persona cards should be displayed");
+    // Verify chat is closed and persona selector is visible
+    const chatRegion = world.page.getByRole("region", { name: /AI Chat/i });
+    await expect(chatRegion).not.toBeVisible();
+
+    // Verify persona cards are displayed
+    const personaCards = world.page.locator('[data-testid="persona-card"]');
+    await expect(personaCards.first()).toBeVisible({ timeout: 5000 });
+    await expect(personaCards).toHaveCount(6);
   },
 );
 
 Then(
   "conversation progress should be saved",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("conversation progress should be saved");
+    // Verify that the "Return to Conversation" button is visible
+    // This indicates the conversation state has been saved
+    const returnButton = world.page.getByRole("button", {
+      name: /Return to Conversation/i,
+    });
+    await expect(returnButton).toBeVisible();
   },
 );
 
 Then(
   "user can return to conversation if needed",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("user can return to conversation if needed");
+    // Click the "Return to Conversation" button
+    const returnButton = world.page.getByRole("button", {
+      name: /Return to Conversation/i,
+    });
+    await returnButton.click();
+
+    // Verify chat interface opens again
+    const chatRegion = world.page.getByRole("region", { name: /AI Chat/i });
+    await expect(chatRegion).toBeVisible();
+
+    // Verify the previous user message is still there
+    const userMessage = world.page.getByText("I want to build a gaming PC");
+    await expect(userMessage).toBeVisible();
   },
 );
 

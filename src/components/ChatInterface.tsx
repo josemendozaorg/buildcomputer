@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 
-interface Message {
+export interface Message {
   id: string;
   role: "user" | "ai";
   content: string;
@@ -17,6 +17,9 @@ interface Message {
 interface ChatInterfaceProps {
   onMessage?: (message: string) => void;
   onClose?: () => void;
+  onQuickSelectPersona?: () => void;
+  onMessagesChange?: (messages: Message[]) => void;
+  savedMessages?: Message[];
   initialContext?: {
     persona?: string;
     budget?: number;
@@ -26,10 +29,17 @@ interface ChatInterfaceProps {
 export default function ChatInterface({
   onMessage,
   onClose,
+  onQuickSelectPersona,
+  onMessagesChange,
+  savedMessages,
   initialContext,
 }: ChatInterfaceProps = {}) {
   // Generate initial messages based on context
   const getInitialMessages = (): Message[] => {
+    // If we have saved messages, use them
+    if (savedMessages && savedMessages.length > 0) {
+      return savedMessages;
+    }
     if (initialContext?.persona) {
       // User is refining an existing build
       const personaName = initialContext.persona
@@ -84,11 +94,15 @@ export default function ChatInterface({
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
 
-    // Call callback if provided
+    // Call callbacks if provided
     if (onMessage) {
       onMessage(inputValue);
+    }
+    if (onMessagesChange) {
+      onMessagesChange(newMessages);
     }
 
     // Clear input
@@ -112,10 +126,15 @@ export default function ChatInterface({
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
 
+    // Call callbacks if provided
     if (onMessage) {
       onMessage(value);
+    }
+    if (onMessagesChange) {
+      onMessagesChange(newMessages);
     }
   };
 
@@ -128,15 +147,25 @@ export default function ChatInterface({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="text-lg font-semibold">AI PC Builder</h2>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-            aria-label="Close chat"
-          >
-            <span className="sr-only">Close</span>✕
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {onQuickSelectPersona && (
+            <button
+              onClick={onQuickSelectPersona}
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-green-700 hover:to-teal-700 transition-all"
+            >
+              Quick Select Persona
+            </button>
+          )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="Close chat"
+            >
+              <span className="sr-only">Close</span>✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Message History */}
