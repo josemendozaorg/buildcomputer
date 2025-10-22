@@ -527,35 +527,76 @@ Then(
 Given(
   "user sees build recommendations",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("user sees build recommendations");
+    // Navigate to builder page and select a persona to see recommendations
+    const url = world.devServerUrl || "http://localhost:5173";
+    await world.page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
+
+    // Select a persona
+    const competitiveGamerCard = world.page.locator(
+      '[data-persona-id="competitive-gamer"]',
+    );
+    await expect(competitiveGamerCard).toBeVisible();
+    await competitiveGamerCard.click();
+
+    // Wait for build recommendations to appear
+    const buildCard = world.page.getByTestId("build-card");
+    await expect(buildCard.first()).toBeVisible();
+
+    // Expand the first build to see components
+    const viewDetailsButton = buildCard.first().getByRole("button", {
+      name: /View Details/i,
+    });
+    await viewDetailsButton.click();
+
+    // Wait for component list to be visible
+    const componentList = buildCard.first().getByTestId("component-list");
+    await expect(componentList).toBeVisible();
   },
 );
 
 When(
   'user hovers over "GPU" component name',
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError('user hovers over "GPU" component name');
+    // Find the GPU component type label and hover over it
+    const gpuLabel = world.page.getByText("GPU", { exact: true }).first();
+    await expect(gpuLabel).toBeVisible();
+    await gpuLabel.hover();
   },
 );
 
 Then(
   "tooltip should appear within 100ms",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("tooltip should appear within 100ms");
+    // Wait for tooltip to appear (should be fast)
+    const tooltip = world.page.getByTestId("component-tooltip");
+    await expect(tooltip).toBeVisible({ timeout: 100 });
   },
 );
 
 Then(
   /show simple explanation: "(.*)"/,
   async function (world: AIBuilderWorld, explanation: string) {
-    throw new NotImplementedError(`show simple explanation: "${explanation}"`);
+    // Check that the tooltip contains the expected explanation
+    const tooltip = world.page.getByTestId("component-tooltip");
+    await expect(tooltip).toContainText(explanation);
   },
 );
 
 Then(
   "tooltip should be WCAG 2.1 AA compliant",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("tooltip should be WCAG 2.1 AA compliant");
+    // Check for proper ARIA attributes
+    const tooltip = world.page.getByTestId("component-tooltip");
+
+    // Should have role="tooltip"
+    const roleValue = await tooltip.getAttribute("role");
+    expect(roleValue).toBe("tooltip");
+
+    // Should have an id for aria-describedby reference
+    const idValue = await tooltip.getAttribute("id");
+    expect(idValue).toBeTruthy();
+
+    // Tooltip passed basic accessibility checks
   },
 );
 

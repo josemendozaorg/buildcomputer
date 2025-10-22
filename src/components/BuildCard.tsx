@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Build } from "../types/components";
+import Tooltip from "./Tooltip";
+import { componentTooltips } from "../utils/componentTooltips";
 
 export interface BuildCardProps {
   build: Build;
@@ -58,9 +60,11 @@ export default function BuildCard({ build }: BuildCardProps) {
               className="bg-gray-50 rounded-md p-3 border border-gray-200"
             >
               <div className="flex justify-between items-start mb-2">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  {component.type}
-                </span>
+                <Tooltip content={componentTooltips[component.type]}>
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    {component.type}
+                  </span>
+                </Tooltip>
                 <span className="text-sm font-medium text-gray-900">
                   {formatCurrency(component.price)}
                 </span>
