@@ -64,6 +64,21 @@ export function getNextConversationStep(
       // Context-aware follow-up based on use case
       const useCase = state.useCase || "";
       if (useCase.toLowerCase().includes("gaming")) {
+        // Check for specific game mentions to provide context-aware response
+        const lowerUseCase = useCase.toLowerCase();
+        if (
+          lowerUseCase.includes("valorant") ||
+          lowerUseCase.includes("competitive")
+        ) {
+          const contextAwareMessage = generateContextAwareResponse(
+            state,
+            "What are your graphics needs?",
+          );
+          return {
+            message: contextAwareMessage,
+            chips: ["High FPS (240+)", "Medium FPS (144)", "60 FPS is fine"],
+          };
+        }
         return {
           message: "What type of gaming are you interested in?",
           chips: [
@@ -214,14 +229,20 @@ export function generateContextAwareResponse(
   state: ConversationState,
   currentQuestion: string,
 ): string {
-  // Reference previous context
+  // Reference previous context from different steps
+  const message1 = state.context["message_1"];
   const message2 = state.context["message_2"];
 
-  if (
-    message2 &&
-    typeof message2 === "string" &&
-    message2.toLowerCase().includes("valorant")
-  ) {
+  // Check for Valorant mentions in earlier messages
+  const valorantMentioned =
+    (message1 &&
+      typeof message1 === "string" &&
+      message1.toLowerCase().includes("valorant")) ||
+    (message2 &&
+      typeof message2 === "string" &&
+      message2.toLowerCase().includes("valorant"));
+
+  if (valorantMentioned) {
     if (currentQuestion.includes("graphics")) {
       return "For Valorant, you'll want high FPS. What's your target frame rate?";
     }
