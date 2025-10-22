@@ -109,26 +109,40 @@ Then(
 );
 
 When("user clicks a persona card", async function (world: AIBuilderWorld) {
-  throw new NotImplementedError("user clicks a persona card");
+  // Click the first persona card (Competitive Gamer)
+  const personaCard = world.page
+    .getByRole("button", { name: /Competitive Gamer/i })
+    .first();
+  await expect(personaCard).toBeVisible();
+  await personaCard.click();
+  world.selectedPersona = "competitive-gamer";
 });
 
 Then("budget slider should appear", async function (world: AIBuilderWorld) {
-  throw new NotImplementedError("budget slider should appear");
+  const budgetSlider = world.page.locator('input[type="range"]');
+  await expect(budgetSlider).toBeVisible();
 });
 
 Then(
   "build recommendations should generate",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("build recommendations should generate");
+    // Wait for build cards to appear
+    const buildCards = world.page.locator('[data-testid="build-card"]');
+    await expect(buildCards.first()).toBeVisible({ timeout: 5000 });
+
+    // Should have 3 build recommendations
+    await expect(buildCards).toHaveCount(3);
   },
 );
 
 Then(
   '"Talk to AI Builder" option should still be available',
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      '"Talk to AI Builder" option should still be available',
-    );
+    // Verify "Talk to AI Builder" button is still visible
+    const aiButton = world.page.getByRole("button", {
+      name: /Talk to AI Builder/i,
+    });
+    await expect(aiButton).toBeVisible();
   },
 );
 
