@@ -6,6 +6,11 @@
  */
 
 import { useState } from "react";
+import {
+  initConversationState,
+  getNextConversationStep,
+  ConversationState,
+} from "../services/conversationService";
 
 interface Message {
   id: string;
@@ -72,27 +77,63 @@ export default function ChatInterface({
 
   const [messages, setMessages] = useState<Message[]>(getInitialMessages());
   const [inputValue, setInputValue] = useState("");
+  const [conversationState, setConversationState] = useState<ConversationState>(
+    initConversationState(),
+  );
+  const [dynamicChips, setDynamicChips] = useState<string[]>([
+    "Gaming",
+    "Work",
+    "Content Creation",
+  ]);
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
+
+    const messageContent = inputValue;
 
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: inputValue,
+      content: messageContent,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
 
+    // Clear input immediately for better UX
+    setInputValue("");
+
+    // Generate AI response using conversation service
+    setTimeout(() => {
+      const response = getNextConversationStep(
+        conversationState,
+        messageContent,
+      );
+
+      // Add AI message
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "ai",
+        content: response.message,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+
+      // Update dynamic chips if provided
+      if (response.chips) {
+        setDynamicChips(response.chips);
+      }
+
+      // Update conversation state
+      setConversationState({ ...conversationState });
+    }, 500); // Small delay to simulate AI thinking
+
     // Call callback if provided
     if (onMessage) {
-      onMessage(inputValue);
+      onMessage(messageContent);
     }
-
-    // Clear input
-    setInputValue("");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -103,7 +144,6 @@ export default function ChatInterface({
   };
 
   const handleChipClick = (value: string) => {
-    setInputValue(value);
     // Auto-send when chip is clicked
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -113,6 +153,29 @@ export default function ChatInterface({
     };
 
     setMessages((prev) => [...prev, userMessage]);
+
+    // Generate AI response using conversation service
+    setTimeout(() => {
+      const response = getNextConversationStep(conversationState, value);
+
+      // Add AI message
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "ai",
+        content: response.message,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+
+      // Update dynamic chips if provided
+      if (response.chips) {
+        setDynamicChips(response.chips);
+      }
+
+      // Update conversation state
+      setConversationState({ ...conversationState });
+    }, 500); // Small delay to simulate AI thinking
 
     if (onMessage) {
       onMessage(value);
@@ -165,24 +228,15 @@ export default function ChatInterface({
       {/* Quick Reply Chips */}
       <div className="px-4 py-2 border-t bg-gray-50">
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => handleChipClick("Gaming")}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
-          >
-            Gaming
-          </button>
-          <button
-            onClick={() => handleChipClick("Work")}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
-          >
-            Work
-          </button>
-          <button
-            onClick={() => handleChipClick("Content Creation")}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
-          >
-            Content Creation
-          </button>
+          {dynamicChips.map((chip, index) => (
+            <button
+              key={index}
+              onClick={() => handleChipClick(chip)}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+            >
+              {chip}
+            </button>
+          ))}
         </div>
       </div>
 
