@@ -17,26 +17,60 @@ interface Message {
 interface ChatInterfaceProps {
   onMessage?: (message: string) => void;
   onClose?: () => void;
+  initialContext?: {
+    persona?: string;
+    budget?: number;
+  };
 }
 
 export default function ChatInterface({
   onMessage,
   onClose,
+  initialContext,
 }: ChatInterfaceProps = {}) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "ai",
-      content: "Hi! I'm here to help you build the perfect PC.",
-      timestamp: new Date(),
-    },
-    {
-      id: "2",
-      role: "ai",
-      content: "What will you mainly use it for?",
-      timestamp: new Date(),
-    },
-  ]);
+  // Generate initial messages based on context
+  const getInitialMessages = (): Message[] => {
+    if (initialContext?.persona) {
+      // User is refining an existing build
+      const personaName = initialContext.persona
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+
+      return [
+        {
+          id: "1",
+          role: "ai",
+          content: `I see you've selected the ${personaName} persona with a $${initialContext.budget} budget. Great choice!`,
+          timestamp: new Date(),
+        },
+        {
+          id: "2",
+          role: "ai",
+          content: "How would you like to refine your build?",
+          timestamp: new Date(),
+        },
+      ];
+    }
+
+    // Default: new conversation
+    return [
+      {
+        id: "1",
+        role: "ai",
+        content: "Hi! I'm here to help you build the perfect PC.",
+        timestamp: new Date(),
+      },
+      {
+        id: "2",
+        role: "ai",
+        content: "What will you mainly use it for?",
+        timestamp: new Date(),
+      },
+    ];
+  };
+
+  const [messages, setMessages] = useState<Message[]>(getInitialMessages());
   const [inputValue, setInputValue] = useState("");
 
   const handleSend = () => {
