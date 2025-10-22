@@ -149,30 +149,58 @@ Then(
 Given(
   "user has selected a persona and sees build recommendations",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "user has selected a persona and sees build recommendations",
-    );
+    // Navigate to builder page
+    const url = world.devServerUrl || "http://localhost:5173";
+    await world.page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
+
+    // Click persona card
+    const personaCard = world.page
+      .getByRole("button", { name: /Competitive Gamer/i })
+      .first();
+    await expect(personaCard).toBeVisible();
+    await personaCard.click();
+    world.selectedPersona = "competitive-gamer";
+
+    // Wait for build recommendations to appear
+    const buildCards = world.page.locator('[data-testid="build-card"]');
+    await expect(buildCards.first()).toBeVisible({ timeout: 5000 });
+    await expect(buildCards).toHaveCount(3);
   },
 );
 
 When(
   'user clicks "Refine with AI" button',
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError('user clicks "Refine with AI" button');
+    const refineButton = world.page.getByRole("button", {
+      name: /Refine with AI/i,
+    });
+    await expect(refineButton).toBeVisible();
+    await refineButton.click();
   },
 );
 
 Then(
   "AI should acknowledge current selection",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("AI should acknowledge current selection");
+    // Wait for chat to open
+    const chatRegion = world.page.getByRole("region", { name: /AI Chat/i });
+    await expect(chatRegion).toBeVisible();
+
+    // Verify AI acknowledges the persona and budget
+    const acknowledgment = world.page.getByText(/Competitive Gamer persona/i);
+    await expect(acknowledgment).toBeVisible();
+
+    // Should mention budget
+    const budgetMention = world.page.getByText(/\$1500/i);
+    await expect(budgetMention).toBeVisible();
   },
 );
 
 Then(
   "AI should ask how to refine the build",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("AI should ask how to refine the build");
+    const question = world.page.getByText(/How would you like to refine/i);
+    await expect(question).toBeVisible();
   },
 );
 
