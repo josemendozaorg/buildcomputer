@@ -1,8 +1,10 @@
 # Specification: AI Conversational Builder
 
+**Issue ID:** FEAT-003
+**GitHub Issue:** #3
 **Status:** Approved
 **Created:** 2025-10-22
-**Phase:** 2 - Spec (Complete)
+**Phase:** 3 - Implementation (In Progress)
 
 ## Overview
 
