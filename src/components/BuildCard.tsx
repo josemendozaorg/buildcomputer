@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Build } from "../types/components";
 import Tooltip from "./Tooltip";
+import Popover from "./Popover";
 import { componentTooltips } from "../utils/componentTooltips";
+import { componentDetailsData } from "../utils/componentDetails";
 
 export interface BuildCardProps {
   build: Build;
@@ -9,6 +11,9 @@ export interface BuildCardProps {
 
 export default function BuildCard({ build }: BuildCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedComponent, setSelectedComponent] = useState<string | null>(
+    null,
+  );
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat("en-US", {
@@ -83,9 +88,55 @@ export default function BuildCard({ build }: BuildCardProps) {
                   </span>
                 ))}
               </div>
+              {/* Learn More button for components with detailed info */}
+              {componentDetailsData[component.name] && (
+                <button
+                  onClick={() => setSelectedComponent(component.name)}
+                  className="mt-2 text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                  data-testid={`learn-more-${component.type.toLowerCase()}`}
+                >
+                  Learn More →
+                </button>
+              )}
             </div>
           ))}
         </div>
+      )}
+
+      {/* Component Details Popover */}
+      {selectedComponent && componentDetailsData[selectedComponent] && (
+        <Popover
+          isOpen={!!selectedComponent}
+          onClose={() => setSelectedComponent(null)}
+          title={selectedComponent}
+        >
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                Description
+              </h4>
+              <p className="text-sm text-gray-600">
+                {componentDetailsData[selectedComponent].description}
+              </p>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                When to Choose
+              </h4>
+              <p className="text-sm text-gray-600">
+                {componentDetailsData[selectedComponent].whenToChoose}
+              </p>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                Performance Tier
+              </h4>
+              <span className="inline-block px-3 py-1 text-sm font-medium bg-indigo-100 text-indigo-800 rounded-full">
+                {componentDetailsData[selectedComponent].performanceTier}
+              </span>
+            </div>
+          </div>
+        </Popover>
       )}
     </div>
   );

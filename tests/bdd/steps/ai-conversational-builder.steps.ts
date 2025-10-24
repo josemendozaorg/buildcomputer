@@ -603,43 +603,81 @@ Then(
 Given(
   "user sees build recommendation with RTX 4070",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "user sees build recommendation with RTX 4070",
+    // Similar to previous step, but we need to ensure RTX 4070 is visible
+    const url = world.devServerUrl || "http://localhost:5173";
+    await world.page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
+
+    // Select competitive gamer which typically has RTX 4070
+    const competitiveGamerCard = world.page.locator(
+      '[data-persona-id="competitive-gamer"]',
     );
+    await expect(competitiveGamerCard).toBeVisible();
+    await competitiveGamerCard.click();
+
+    // Wait for build recommendations
+    const buildCard = world.page.getByTestId("build-card").first();
+    await expect(buildCard).toBeVisible();
+
+    // Expand to see components
+    const viewDetailsButton = buildCard.getByRole("button", {
+      name: /View Details/i,
+    });
+    await viewDetailsButton.click();
+
+    // Wait for component list
+    await expect(buildCard.getByTestId("component-list")).toBeVisible();
   },
 );
 
 When(
   'user clicks "Learn More" on GPU component',
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError('user clicks "Learn More" on GPU component');
+    // Click the Learn More button for GPU
+    const learnMoreButton = world.page.getByTestId("learn-more-gpu");
+    await expect(learnMoreButton).toBeVisible();
+    await learnMoreButton.click();
   },
 );
 
 Then(
   "popover should open with detailed explanation",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "popover should open with detailed explanation",
-    );
+    // Verify popover is visible
+    const popover = world.page.getByTestId("component-popover");
+    await expect(popover).toBeVisible();
   },
 );
 
 Then(
   "show: description, when to choose this GPU, performance tier",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "show: description, when to choose this GPU, performance tier",
-    );
+    const popover = world.page.getByTestId("component-popover");
+
+    // Check for all three sections
+    await expect(popover).toContainText("Description");
+    await expect(popover).toContainText("When to Choose");
+    await expect(popover).toContainText("Performance Tier");
   },
 );
 
 Then(
   "popover should be dismissable and accessible",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "popover should be dismissable and accessible",
-    );
+    const popover = world.page.getByTestId("component-popover");
+
+    // Check for accessibility attributes
+    await expect(popover).toHaveAttribute("role", "dialog");
+    await expect(popover).toHaveAttribute("aria-modal", "true");
+
+    // Check for close button
+    const closeButton = popover.getByRole("button", {
+      name: /Close popover/i,
+    });
+    await expect(closeButton).toBeVisible();
+
+    // Test dismissability by clicking close
+    await closeButton.click();
+    await expect(popover).not.toBeVisible();
   },
 );
 
