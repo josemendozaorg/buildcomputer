@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Build } from "../types/components";
 import Tooltip from "./Tooltip";
 import Popover from "./Popover";
+import TechnicalTermTooltip from "./TechnicalTermTooltip";
 import { componentTooltips } from "../utils/componentTooltips";
 import { componentDetailsData } from "../utils/componentDetails";
 import { componentReasoningData } from "../utils/componentReasoning";
@@ -83,7 +84,10 @@ export default function BuildCard({ build }: BuildCardProps) {
               <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
                 {Object.entries(component.specs).map(([key, value]) => (
                   <span key={key} className="text-xs text-gray-700">
-                    <span className="font-medium">{value}</span>{" "}
+                    <TechnicalTermTooltip
+                      text={value}
+                      className="font-medium"
+                    />{" "}
                     {key !== value && (
                       <span className="text-gray-500">{key}</span>
                     )}
