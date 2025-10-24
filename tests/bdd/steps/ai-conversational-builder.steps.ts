@@ -853,42 +853,97 @@ Then(
   },
 );
 
+// Scenario 16: Progressive disclosure - basic to advanced
 Given(
   "user views component explanation",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("user views component explanation");
+    // Navigate to builder page and select a persona
+    const url = world.devServerUrl || "http://localhost:5173";
+    await world.page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
+
+    // Select competitive gamer persona
+    const competitiveGamerCard = world.page.locator(
+      '[data-persona-id="competitive-gamer"]',
+    );
+    await expect(competitiveGamerCard).toBeVisible();
+    await competitiveGamerCard.click();
+
+    // Wait for build recommendations to appear
+    const buildCard = world.page.getByTestId("build-card");
+    await expect(buildCard.first()).toBeVisible();
+
+    // Expand the first build to see components
+    const viewDetailsButton = buildCard.first().getByRole("button", {
+      name: /View Details/i,
+    });
+    await viewDetailsButton.click();
+
+    // Wait for component list to be visible
+    const componentList = buildCard.first().getByTestId("component-list");
+    await expect(componentList).toBeVisible();
+
+    // Click "Learn More" on GPU to view component explanation
+    const learnMoreButton = world.page.getByTestId("learn-more-gpu");
+    await expect(learnMoreButton).toBeVisible();
+    await learnMoreButton.click();
+
+    // Wait for popover to appear
+    const popover = world.page.getByTestId("component-popover");
+    await expect(popover).toBeVisible();
   },
 );
 
 When(
   'user clicks "Show advanced details"',
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError('user clicks "Show advanced details"');
+    // Click the "Show advanced details" button
+    const advancedDetailsButton = world.page.getByTestId(
+      "show-advanced-details-button",
+    );
+    await expect(advancedDetailsButton).toBeVisible();
+    await advancedDetailsButton.click();
   },
 );
 
 Then(
   "additional technical specs should expand",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError("additional technical specs should expand");
+    // Check that advanced specs section is visible
+    const advancedSpecs = world.page.getByTestId("advanced-specs");
+    await expect(advancedSpecs).toBeVisible();
   },
 );
 
 Then(
   "show: clock speeds, TDP, architecture details",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "show: clock speeds, TDP, architecture details",
-    );
+    const advancedSpecs = world.page.getByTestId("advanced-specs");
+
+    // Check for presence of technical specifications
+    // These are shown for GPU (RTX 4070)
+    await expect(advancedSpecs).toContainText("Clock");
+    await expect(advancedSpecs).toContainText("TDP");
+    await expect(advancedSpecs).toContainText("Architecture");
   },
 );
 
 Then(
   "maintain readability with proper formatting",
   async function (world: AIBuilderWorld) {
-    throw new NotImplementedError(
-      "maintain readability with proper formatting",
-    );
+    const advancedSpecs = world.page.getByTestId("advanced-specs");
+
+    // Check for proper formatting with heading
+    await expect(advancedSpecs).toContainText("Technical Specifications");
+
+    // Check that it uses a grid layout (check for presence of structured data)
+    // The specs should be well-organized and readable
+    const text = await advancedSpecs.textContent();
+    expect(text).toBeTruthy();
+
+    // Verify that labels and values are properly paired
+    // (This is a basic check - proper formatting means labels are visible)
+    const hasFormattedContent = text && text.length > 50; // Should have substantial content
+    expect(hasFormattedContent).toBe(true);
   },
 );
 

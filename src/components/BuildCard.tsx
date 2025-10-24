@@ -17,6 +17,7 @@ export default function BuildCard({ build }: BuildCardProps) {
     null,
   );
   const [showReasoning, setShowReasoning] = useState(false);
+  const [showAdvancedDetails, setShowAdvancedDetails] = useState(false);
 
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat("en-US", {
@@ -130,7 +131,10 @@ export default function BuildCard({ build }: BuildCardProps) {
       {selectedComponent && (
         <Popover
           isOpen={!!selectedComponent}
-          onClose={() => setSelectedComponent(null)}
+          onClose={() => {
+            setSelectedComponent(null);
+            setShowAdvancedDetails(false);
+          }}
           title={selectedComponent}
         >
           {showReasoning && componentReasoningData[selectedComponent] ? (
@@ -190,6 +194,175 @@ export default function BuildCard({ build }: BuildCardProps) {
                   {componentDetailsData[selectedComponent].performanceTier}
                 </span>
               </div>
+
+              {/* Advanced Details Section */}
+              {componentDetailsData[selectedComponent].advancedSpecs && (
+                <div className="pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowAdvancedDetails(!showAdvancedDetails)}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                    data-testid="show-advanced-details-button"
+                  >
+                    {showAdvancedDetails
+                      ? "Hide advanced details"
+                      : "Show advanced details"}
+                  </button>
+
+                  {showAdvancedDetails && (
+                    <div
+                      className="mt-4 space-y-3 animate-fade-in"
+                      data-testid="advanced-specs"
+                    >
+                      <h4 className="text-sm font-semibold text-gray-700">
+                        Technical Specifications
+                      </h4>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        {componentDetailsData[selectedComponent].advancedSpecs
+                          ?.clockSpeed && (
+                          <div>
+                            <span className="font-medium text-gray-700">
+                              Base Clock:
+                            </span>
+                            <span className="ml-1 text-gray-600">
+                              {
+                                componentDetailsData[selectedComponent]
+                                  .advancedSpecs.clockSpeed
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {componentDetailsData[selectedComponent].advancedSpecs
+                          ?.boostClock && (
+                          <div>
+                            <span className="font-medium text-gray-700">
+                              Boost Clock:
+                            </span>
+                            <span className="ml-1 text-gray-600">
+                              {
+                                componentDetailsData[selectedComponent]
+                                  .advancedSpecs.boostClock
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {componentDetailsData[selectedComponent].advancedSpecs
+                          ?.tdp && (
+                          <div>
+                            <span className="font-medium text-gray-700">
+                              TDP:
+                            </span>
+                            <span className="ml-1 text-gray-600">
+                              {
+                                componentDetailsData[selectedComponent]
+                                  .advancedSpecs.tdp
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {componentDetailsData[selectedComponent].advancedSpecs
+                          ?.architecture && (
+                          <div className="col-span-2">
+                            <span className="font-medium text-gray-700">
+                              Architecture:
+                            </span>
+                            <span className="ml-1 text-gray-600">
+                              {
+                                componentDetailsData[selectedComponent]
+                                  .advancedSpecs.architecture
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {componentDetailsData[selectedComponent].advancedSpecs
+                          ?.cores && (
+                          <div>
+                            <span className="font-medium text-gray-700">
+                              Cores:
+                            </span>
+                            <span className="ml-1 text-gray-600">
+                              {
+                                componentDetailsData[selectedComponent]
+                                  .advancedSpecs.cores
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {componentDetailsData[selectedComponent].advancedSpecs
+                          ?.threads && (
+                          <div>
+                            <span className="font-medium text-gray-700">
+                              Threads:
+                            </span>
+                            <span className="ml-1 text-gray-600">
+                              {
+                                componentDetailsData[selectedComponent]
+                                  .advancedSpecs.threads
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {componentDetailsData[selectedComponent].advancedSpecs
+                          ?.cache && (
+                          <div className="col-span-2">
+                            <span className="font-medium text-gray-700">
+                              Cache:
+                            </span>
+                            <span className="ml-1 text-gray-600">
+                              {
+                                componentDetailsData[selectedComponent]
+                                  .advancedSpecs.cache
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {componentDetailsData[selectedComponent].advancedSpecs
+                          ?.memoryType && (
+                          <div>
+                            <span className="font-medium text-gray-700">
+                              Memory:
+                            </span>
+                            <span className="ml-1 text-gray-600">
+                              {
+                                componentDetailsData[selectedComponent]
+                                  .advancedSpecs.memoryType
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {componentDetailsData[selectedComponent].advancedSpecs
+                          ?.memorySpeed && (
+                          <div>
+                            <span className="font-medium text-gray-700">
+                              Memory Speed:
+                            </span>
+                            <span className="ml-1 text-gray-600">
+                              {
+                                componentDetailsData[selectedComponent]
+                                  .advancedSpecs.memorySpeed
+                              }
+                            </span>
+                          </div>
+                        )}
+                        {componentDetailsData[selectedComponent].advancedSpecs
+                          ?.other &&
+                          Object.entries(
+                            componentDetailsData[selectedComponent]
+                              .advancedSpecs.other || {},
+                          ).map(([key, value]) => (
+                            <div key={key}>
+                              <span className="font-medium text-gray-700">
+                                {key}:
+                              </span>
+                              <span className="ml-1 text-gray-600">
+                                {value}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : null}
         </Popover>

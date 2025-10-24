@@ -4,10 +4,24 @@
  * Provides in-depth educational content about specific PC components
  */
 
+export interface AdvancedSpecs {
+  clockSpeed?: string;
+  boostClock?: string;
+  tdp?: string;
+  architecture?: string;
+  cores?: string;
+  threads?: string;
+  cache?: string;
+  memoryType?: string;
+  memorySpeed?: string;
+  other?: Record<string, string>;
+}
+
 export interface ComponentDetails {
   description: string;
   whenToChoose: string;
   performanceTier: string;
+  advancedSpecs?: AdvancedSpecs;
 }
 
 export const componentDetailsData: Record<string, ComponentDetails> = {
@@ -32,6 +46,20 @@ export const componentDetailsData: Record<string, ComponentDetails> = {
     whenToChoose:
       "Perfect for 1440p gaming at high refresh rates or 4K gaming at 60fps. Excellent value for performance.",
     performanceTier: "Upper Mid-Range",
+    advancedSpecs: {
+      clockSpeed: "1920 MHz",
+      boostClock: "2475 MHz",
+      tdp: "200W",
+      architecture: "Ada Lovelace (TSMC 4N)",
+      cores: "5888 CUDA cores",
+      memoryType: "12GB GDDR6X",
+      memorySpeed: "21 Gbps",
+      other: {
+        "Memory Bus": "192-bit",
+        "RT Cores": "46 (3rd gen)",
+        "Tensor Cores": "184 (4th gen)",
+      },
+    },
   },
   "RTX 4060": {
     description:
@@ -55,6 +83,20 @@ export const componentDetailsData: Record<string, ComponentDetails> = {
     whenToChoose:
       "The ultimate choice for competitive gaming and high-FPS gaming. Unmatched gaming performance.",
     performanceTier: "Gaming Flagship",
+    advancedSpecs: {
+      clockSpeed: "4.2 GHz base",
+      boostClock: "5.0 GHz max",
+      tdp: "120W",
+      architecture: "Zen 4 (TSMC 5nm)",
+      cores: "8 cores",
+      threads: "16 threads",
+      cache: "96MB total (32MB L3 + 64MB 3D V-Cache)",
+      other: {
+        Socket: "AM5",
+        "PCIe Support": "PCIe 5.0",
+        "Memory Support": "DDR5-5200",
+      },
+    },
   },
   "Core i7-14700K": {
     description:
