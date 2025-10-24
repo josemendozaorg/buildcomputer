@@ -11,7 +11,7 @@ export interface ComponentReasoning {
 }
 
 export const componentReasoningData: Record<string, ComponentReasoning> = {
-  "Ryzen 7 7800X3D": {
+  "AMD Ryzen 7 7800X3D": {
     reason:
       "I chose Ryzen 7 7800X3D because you need high FPS for competitive gaming. The 3D V-Cache provides unmatched gaming performance.",
     performanceImpact:
@@ -21,14 +21,14 @@ export const componentReasoningData: Record<string, ComponentReasoning> = {
       "Ryzen 7 7700X (better value)",
     ],
   },
-  "RTX 4070": {
+  "NVIDIA GeForce RTX 4070": {
     reason:
       "I chose RTX 4070 for excellent 1440p gaming performance with ray tracing capabilities, perfect for your gaming needs.",
     performanceImpact:
       "Provides 60+ FPS at 1440p ultra settings in modern games",
     alternatives: ["RTX 4060 Ti (budget option)", "RTX 4080 (4K gaming)"],
   },
-  "RTX 4090": {
+  "NVIDIA GeForce RTX 4090": {
     reason:
       "I chose RTX 4090 for maximum performance in 4K gaming and content creation workloads.",
     performanceImpact: "Best-in-class performance, 50% faster than RTX 4080",

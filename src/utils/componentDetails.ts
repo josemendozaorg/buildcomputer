@@ -26,21 +26,21 @@ export interface ComponentDetails {
 
 export const componentDetailsData: Record<string, ComponentDetails> = {
   // GPUs
-  "RTX 4090": {
+  "NVIDIA GeForce RTX 4090": {
     description:
       "NVIDIA's flagship gaming GPU with 24GB GDDR6X memory. Exceptional for 4K gaming, ray tracing, and professional workloads.",
     whenToChoose:
       "Choose this GPU when you need the absolute best performance for 4K gaming at maximum settings, content creation, or AI/ML workloads.",
     performanceTier: "Ultra-High End",
   },
-  "RTX 4080": {
+  "NVIDIA GeForce RTX 4080": {
     description:
       "High-end GPU with 16GB GDDR6X memory. Excellent 4K performance with ray tracing capabilities.",
     whenToChoose:
       "Ideal for 4K gaming and high-refresh 1440p gaming. Great balance of power and value for enthusiasts.",
     performanceTier: "High End",
   },
-  "RTX 4070": {
+  "NVIDIA GeForce RTX 4070": {
     description:
       "Upper mid-range GPU with 12GB GDDR6X memory. Strong 1440p performance and capable 4K gaming.",
     whenToChoose:
@@ -61,23 +61,44 @@ export const componentDetailsData: Record<string, ComponentDetails> = {
       },
     },
   },
-  "RTX 4060": {
+  "NVIDIA GeForce RTX 4060": {
     description:
       "Mid-range GPU with 8GB GDDR6 memory. Solid 1080p and entry-level 1440p gaming.",
     whenToChoose:
       "Great for 1080p gaming at high settings or competitive gaming at high frame rates.",
     performanceTier: "Mid-Range",
   },
+  "NVIDIA GeForce RTX 4060 Ti": {
+    description:
+      "Enhanced mid-range GPU with 8GB GDDR6 memory. Strong 1080p and capable 1440p gaming performance.",
+    whenToChoose:
+      "Perfect for competitive gaming at high FPS or 1440p gaming at good settings. Better performance than RTX 4060.",
+    performanceTier: "Upper Mid-Range",
+    advancedSpecs: {
+      clockSpeed: "2310 MHz",
+      boostClock: "2535 MHz",
+      tdp: "160W",
+      architecture: "Ada Lovelace (TSMC 4N)",
+      cores: "4352 CUDA cores",
+      memoryType: "8GB GDDR6",
+      memorySpeed: "18 Gbps",
+      other: {
+        "Memory Bus": "128-bit",
+        "RT Cores": "34 (3rd gen)",
+        "Tensor Cores": "136 (4th gen)",
+      },
+    },
+  },
 
   // CPUs
-  "Ryzen 9 7950X": {
+  "AMD Ryzen 9 7950X": {
     description:
       "AMD's flagship 16-core processor. Outstanding for gaming, content creation, and multitasking.",
     whenToChoose:
       "Choose this when you need top-tier gaming performance combined with excellent productivity capabilities.",
     performanceTier: "Flagship",
   },
-  "Ryzen 7 7800X3D": {
+  "AMD Ryzen 7 7800X3D": {
     description:
       "8-core gaming-focused CPU with 3D V-Cache technology. Best gaming performance available.",
     whenToChoose:
@@ -98,18 +119,32 @@ export const componentDetailsData: Record<string, ComponentDetails> = {
       },
     },
   },
-  "Core i7-14700K": {
+  "Intel Core i7-14700K": {
     description:
       "Intel's high-end 20-core processor. Excellent all-around performance for gaming and productivity.",
     whenToChoose:
       "Great for users who want strong gaming performance with solid multi-threaded productivity.",
     performanceTier: "High End",
   },
-  "Ryzen 5 7600X": {
+  "AMD Ryzen 5 7600X": {
     description:
       "6-core mainstream CPU. Strong gaming performance with good value.",
     whenToChoose:
       "Perfect for gaming-focused builds on a budget. Excellent 1080p and 1440p gaming performance.",
     performanceTier: "Mid-Range",
+    advancedSpecs: {
+      clockSpeed: "4.7 GHz base",
+      boostClock: "5.3 GHz max",
+      tdp: "105W",
+      architecture: "Zen 4 (TSMC 5nm)",
+      cores: "6 cores",
+      threads: "12 threads",
+      cache: "32MB L3 cache",
+      other: {
+        Socket: "AM5",
+        "PCIe Support": "PCIe 5.0",
+        "Memory Support": "DDR5-5200",
+      },
+    },
   },
 };

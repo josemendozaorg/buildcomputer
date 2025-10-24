@@ -54,16 +54,14 @@ export default function Popover({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="popover-title"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div
         ref={popoverRef}
         className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6 animate-fade-in"
         data-testid="component-popover"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="popover-title"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">

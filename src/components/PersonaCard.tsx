@@ -27,6 +27,7 @@ export default function PersonaCard({
   return (
     <button
       type="button"
+      data-persona-id={persona.id}
       onClick={() => onSelect(persona.id)}
       className={`
         w-full text-left p-6 rounded-lg border-2 transition-all duration-200 relative

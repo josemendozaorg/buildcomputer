@@ -136,11 +136,11 @@ test.describe("Progressive Disclosure - Advanced Details", () => {
 
     const advancedSpecs = page.getByTestId("advanced-specs");
 
-    // RTX 4070 specific specs
+    // GPU-specific specs (RTX 4060 Ti from Optimized Build)
     await expect(advancedSpecs).toContainText("MHz"); // Clock speeds
     await expect(advancedSpecs).toContainText("W"); // TDP
     await expect(advancedSpecs).toContainText("CUDA cores");
-    await expect(advancedSpecs).toContainText("GDDR6X");
+    await expect(advancedSpecs).toContainText("GDDR6");
   });
 
   test("should show CPU-specific advanced specs", async ({ page }) => {
