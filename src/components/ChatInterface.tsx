@@ -5,11 +5,16 @@
  * with conversational interaction and quick-reply chips.
  */
 
-import { useState, useImperativeHandle, forwardRef } from "react";
+import { useState, useImperativeHandle, forwardRef, useEffect } from "react";
 import {
   generateAIResponse,
   PersonaSuggestion,
 } from "../services/mockAIService";
+import {
+  initConversationState,
+  getNextConversationStep,
+  ConversationState,
+} from "../services/conversationService";
 
 export interface Message {
   id: string;
@@ -53,10 +58,25 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
   ) {
     // Generate initial messages based on context
     const getInitialMessages = (): Message[] => {
-      // If we have saved messages, use them
+      // Priority 1: Parent-controlled state (mode switching)
       if (savedMessages && savedMessages.length > 0) {
         return savedMessages;
       }
+
+      // Priority 2: localStorage (conversation persistence)
+      try {
+        const stored = localStorage.getItem("chatMessages");
+        if (stored) {
+          const parsed = JSON.parse(stored) as Message[];
+          if (parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch {
+        // Parse error - fall through to next priority
+      }
+
+      // Priority 3: Initial context (persona refinement)
       if (initialContext?.persona) {
         // User is refining an existing build
         const personaName = initialContext.persona
@@ -97,10 +117,50 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       ];
     };
 
+    // Load persisted conversation state (only if no savedMessages from parent)
+    const loadPersistedConversationState = (): {
+      conversationState: ConversationState;
+      dynamicChips: string[];
+    } => {
+      // If parent is controlling state, don't use localStorage for conversation
+      if (savedMessages && savedMessages.length > 0) {
+        return {
+          conversationState: initConversationState(),
+          dynamicChips: ["Gaming", "Work", "Content Creation"],
+        };
+      }
+
+      try {
+        const savedConversation = localStorage.getItem("conversationState");
+        const savedChips = localStorage.getItem("dynamicChips");
+
+        return {
+          conversationState: savedConversation
+            ? (JSON.parse(savedConversation) as ConversationState)
+            : initConversationState(),
+          dynamicChips: savedChips
+            ? (JSON.parse(savedChips) as string[])
+            : ["Gaming", "Work", "Content Creation"],
+        };
+      } catch {
+        return {
+          conversationState: initConversationState(),
+          dynamicChips: ["Gaming", "Work", "Content Creation"],
+        };
+      }
+    };
+
+    const persistedConvState = loadPersistedConversationState();
+
     const [messages, setMessages] = useState<Message[]>(getInitialMessages());
     const [inputValue, setInputValue] = useState("");
     const [personaSuggestion, setPersonaSuggestion] =
       useState<PersonaSuggestion | null>(null);
+    const [conversationState, setConversationState] =
+      useState<ConversationState>(persistedConvState.conversationState);
+    const [dynamicChips, setDynamicChips] = useState<string[]>(
+      persistedConvState.dynamicChips,
+    );
 
     // Expose methods to parent component
     useImperativeHandle(ref, () => ({
@@ -138,6 +198,22 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       },
     }));
 
+    // Persist state to localStorage whenever it changes
+    useEffect(() => {
+      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    }, [messages]);
+
+    useEffect(() => {
+      localStorage.setItem(
+        "conversationState",
+        JSON.stringify(conversationState),
+      );
+    }, [conversationState]);
+
+    useEffect(() => {
+      localStorage.setItem("dynamicChips", JSON.stringify(dynamicChips));
+    }, [dynamicChips]);
+
     const handleSend = () => {
       if (!inputValue.trim()) return;
 
@@ -162,27 +238,59 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       // Clear input
       setInputValue("");
 
-      // Generate AI response after a short delay
+      // Generate AI response using DUAL service coordination
       setTimeout(() => {
+        // STEP 1: Check mockAIService for persona detection (PRIORITY)
         const aiResponse = generateAIResponse(messageContent);
-        const aiMessage: Message = {
-          id: Date.now().toString(),
-          role: "ai",
-          content: aiResponse.content,
-          timestamp: new Date(),
-        };
 
-        setMessages((prev) => {
-          const newMessages = [...prev, aiMessage];
-          if (onMessagesChange) {
-            onMessagesChange(newMessages);
-          }
-          return newMessages;
-        });
-
-        // Set persona suggestion if AI detected one
         if (aiResponse.suggestions) {
+          // PERSONA DETECTED - Pause conversation flow
+          const aiMessage: Message = {
+            id: Date.now().toString(),
+            role: "ai",
+            content: aiResponse.content,
+            timestamp: new Date(),
+          };
+
+          setMessages((prev) => {
+            const newMessages = [...prev, aiMessage];
+            if (onMessagesChange) {
+              onMessagesChange(newMessages);
+            }
+            return newMessages;
+          });
+
           setPersonaSuggestion(aiResponse.suggestions);
+          // DO NOT advance conversationState - paused for persona suggestion
+        } else {
+          // NO PERSONA DETECTED - Advance conversation flow
+          const convResponse = getNextConversationStep(
+            conversationState,
+            messageContent,
+          );
+
+          const aiMessage: Message = {
+            id: Date.now().toString(),
+            role: "ai",
+            content: convResponse.message,
+            timestamp: new Date(),
+          };
+
+          setMessages((prev) => {
+            const newMessages = [...prev, aiMessage];
+            if (onMessagesChange) {
+              onMessagesChange(newMessages);
+            }
+            return newMessages;
+          });
+
+          // Update dynamic chips from conversation service
+          if (convResponse.chips) {
+            setDynamicChips(convResponse.chips);
+          }
+
+          // Trigger conversation state update
+          setConversationState({ ...conversationState });
         }
       }, 500); // Small delay to simulate AI thinking
 
@@ -200,7 +308,6 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
     };
 
     const handleChipClick = (value: string) => {
-      setInputValue(value);
       // Auto-send when chip is clicked
       const userMessage: Message = {
         id: Date.now().toString(),
@@ -209,7 +316,66 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, userMessage]);
+      setMessages((prev) => {
+        const newMessages = [...prev, userMessage];
+        if (onMessagesChange) {
+          onMessagesChange(newMessages);
+        }
+        return newMessages;
+      });
+
+      // Generate AI response using DUAL service coordination
+      setTimeout(() => {
+        // STEP 1: Check mockAIService for persona detection (PRIORITY)
+        const aiResponse = generateAIResponse(value);
+
+        if (aiResponse.suggestions) {
+          // PERSONA DETECTED - Pause conversation flow
+          const aiMessage: Message = {
+            id: Date.now().toString(),
+            role: "ai",
+            content: aiResponse.content,
+            timestamp: new Date(),
+          };
+
+          setMessages((prev) => {
+            const newMessages = [...prev, aiMessage];
+            if (onMessagesChange) {
+              onMessagesChange(newMessages);
+            }
+            return newMessages;
+          });
+
+          setPersonaSuggestion(aiResponse.suggestions);
+          // DO NOT advance conversationState
+        } else {
+          // NO PERSONA - Advance conversation flow
+          const convResponse = getNextConversationStep(conversationState, value);
+
+          const aiMessage: Message = {
+            id: Date.now().toString(),
+            role: "ai",
+            content: convResponse.message,
+            timestamp: new Date(),
+          };
+
+          setMessages((prev) => {
+            const newMessages = [...prev, aiMessage];
+            if (onMessagesChange) {
+              onMessagesChange(newMessages);
+            }
+            return newMessages;
+          });
+
+          // Update dynamic chips
+          if (convResponse.chips) {
+            setDynamicChips(convResponse.chips);
+          }
+
+          // Trigger conversation state update
+          setConversationState({ ...conversationState });
+        }
+      }, 500);
 
       if (onMessage) {
         onMessage(value);
@@ -252,6 +418,40 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       });
     };
 
+    const handleStartOver = () => {
+      const initialMessages: Message[] = [
+        {
+          id: "1",
+          role: "ai",
+          content: "Hi! I'm here to help you build the perfect PC.",
+          timestamp: new Date(),
+        },
+        {
+          id: "2",
+          role: "ai",
+          content: "What will you mainly use it for?",
+          timestamp: new Date(),
+        },
+      ];
+
+      // Reset all state
+      setMessages(initialMessages);
+      setInputValue("");
+      setConversationState(initConversationState());
+      setDynamicChips(["Gaming", "Work", "Content Creation"]);
+      setPersonaSuggestion(null);
+
+      // Clear localStorage
+      localStorage.removeItem("chatMessages");
+      localStorage.removeItem("conversationState");
+      localStorage.removeItem("dynamicChips");
+
+      // Update parent
+      if (onMessagesChange) {
+        onMessagesChange(initialMessages);
+      }
+    };
+
     return (
       <div
         className="flex flex-col h-full bg-white"
@@ -262,6 +462,13 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold">AI PC Builder</h2>
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleStartOver}
+              className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+              aria-label="Start over conversation"
+            >
+              Start Over
+            </button>
             {onQuickSelectPersona && (
               <button
                 onClick={onQuickSelectPersona}
@@ -346,11 +553,11 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           ))}
         </div>
 
-        {/* Quick Reply Chips */}
+        {/* Quick Reply Chips - Three-level priority */}
         <div className="px-4 py-2 border-t bg-gray-50">
           <div className="flex flex-wrap gap-2">
             {personaSuggestion ? (
-              // Persona suggestion chips
+              // LEVEL 1: Persona suggestion chips (highest priority - interrupts everything)
               <>
                 <button
                   onClick={handleAcceptPersona}
@@ -365,8 +572,19 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                   {personaSuggestion.declineLabel}
                 </button>
               </>
+            ) : dynamicChips.length > 0 ? (
+              // LEVEL 2: Conversation flow chips (from conversationService)
+              dynamicChips.map((chip, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleChipClick(chip)}
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+                >
+                  {chip}
+                </button>
+              ))
             ) : (
-              // Default conversation chips
+              // LEVEL 3: Default chips (fallback)
               <>
                 <button
                   onClick={() => handleChipClick("Gaming")}
