@@ -24,6 +24,9 @@ export interface ChatInterfaceRef {
 interface ChatInterfaceProps {
   onMessage?: (message: string) => void;
   onClose?: () => void;
+  onQuickSelectPersona?: () => void;
+  onMessagesChange?: (messages: Message[]) => void;
+  savedMessages?: Message[];
   initialContext?: {
     persona?: string;
     budget?: number;
@@ -31,9 +34,23 @@ interface ChatInterfaceProps {
 }
 
 const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
-  function ChatInterface({ onMessage, onClose, initialContext = {} }, ref) {
+  function ChatInterface(
+    {
+      onMessage,
+      onClose,
+      onQuickSelectPersona,
+      onMessagesChange,
+      savedMessages,
+      initialContext = {},
+    },
+    ref,
+  ) {
     // Generate initial messages based on context
     const getInitialMessages = (): Message[] => {
+      // If we have saved messages, use them
+      if (savedMessages && savedMessages.length > 0) {
+        return savedMessages;
+      }
       if (initialContext?.persona) {
         // User is refining an existing build
         const personaName = initialContext.persona
@@ -88,7 +105,13 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           isWarning: true,
           suggestions,
         };
-        setMessages((prev) => [...prev, warningMessage]);
+        setMessages((prev) => {
+          const newMessages = [...prev, warningMessage];
+          if (onMessagesChange) {
+            onMessagesChange(newMessages);
+          }
+          return newMessages;
+        });
       },
       addMessage: (message: string) => {
         const aiMessage: Message = {
@@ -97,7 +120,13 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           content: message,
           timestamp: new Date(),
         };
-        setMessages((prev) => [...prev, aiMessage]);
+        setMessages((prev) => {
+          const newMessages = [...prev, aiMessage];
+          if (onMessagesChange) {
+            onMessagesChange(newMessages);
+          }
+          return newMessages;
+        });
       },
     }));
 
@@ -112,7 +141,13 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, userMessage]);
+      setMessages((prev) => {
+        const newMessages = [...prev, userMessage];
+        if (onMessagesChange) {
+          onMessagesChange(newMessages);
+        }
+        return newMessages;
+      });
 
       // Call callback if provided
       if (onMessage) {
@@ -156,15 +191,25 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold">AI PC Builder</h2>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-              aria-label="Close chat"
-            >
-              <span className="sr-only">Close</span>✕
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {onQuickSelectPersona && (
+              <button
+                onClick={onQuickSelectPersona}
+                className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-green-700 hover:to-teal-700 transition-all"
+              >
+                Quick Select Persona
+              </button>
+            )}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700"
+                aria-label="Close chat"
+              >
+                <span className="sr-only">Close</span>✕
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Message History */}

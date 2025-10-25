@@ -14,7 +14,7 @@ import Footer from "../components/Footer";
 import PersonaSelector from "../components/PersonaSelector";
 import BudgetSlider from "../components/BudgetSlider";
 import BuildRecommendations from "../components/BuildRecommendations";
-import ChatInterface from "../components/ChatInterface";
+import ChatInterface, { Message } from "../components/ChatInterface";
 
 export default function BuilderPage() {
   const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(
@@ -22,6 +22,8 @@ export default function BuilderPage() {
   );
   const [budget, setBudget] = useState<number>(1500);
   const [showAIChat, setShowAIChat] = useState(false);
+  const [hasSavedConversation, setHasSavedConversation] = useState(false);
+  const [savedMessages, setSavedMessages] = useState<Message[]>([]);
 
   const handlePersonaSelect = (id: string) => {
     setSelectedPersonaId(id);
@@ -33,10 +35,19 @@ export default function BuilderPage() {
 
   const handleOpenAIChat = () => {
     setShowAIChat(true);
+    setHasSavedConversation(true);
   };
 
   const handleCloseAIChat = () => {
     setShowAIChat(false);
+  };
+
+  const handleQuickSelectPersona = () => {
+    setShowAIChat(false);
+  };
+
+  const handleMessagesChange = (messages: Message[]) => {
+    setSavedMessages(messages);
   };
 
   return (
@@ -45,29 +56,53 @@ export default function BuilderPage() {
       <main className="container mx-auto px-4 py-12">
         {!showAIChat ? (
           <>
-            {/* Talk to AI Builder Button */}
+            {/* Talk to AI Builder or Return to Conversation Button */}
             <div className="mb-8 text-center">
-              <button
-                onClick={handleOpenAIChat}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {hasSavedConversation ? (
+                <button
+                  onClick={handleOpenAIChat}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold rounded-lg hover:from-orange-700 hover:to-red-700 transition-all shadow-lg hover:shadow-xl"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                  />
-                </svg>
-                Talk to AI Builder
-              </button>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                    />
+                  </svg>
+                  Return to Conversation
+                </button>
+              ) : (
+                <button
+                  onClick={handleOpenAIChat}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                    />
+                  </svg>
+                  Talk to AI Builder
+                </button>
+              )}
               <p className="mt-2 text-sm text-gray-600">
-                Get personalized recommendations through conversation
+                {hasSavedConversation
+                  ? "Continue your AI conversation"
+                  : "Get personalized recommendations through conversation"}
               </p>
             </div>
 
@@ -122,6 +157,9 @@ export default function BuilderPage() {
           <div className="fixed inset-0 z-50 bg-white">
             <ChatInterface
               onClose={handleCloseAIChat}
+              onQuickSelectPersona={handleQuickSelectPersona}
+              onMessagesChange={handleMessagesChange}
+              savedMessages={savedMessages}
               initialContext={{
                 persona: selectedPersonaId || undefined,
                 budget,
