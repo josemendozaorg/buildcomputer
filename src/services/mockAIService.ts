@@ -3,11 +3,25 @@
  *
  * Simulates AI responses for the conversational builder.
  * Uses keyword matching to detect user intent and suggest personas.
+ * Supports network error simulation for testing.
  */
 
 export interface AIMessage {
   content: string;
   suggestions?: PersonaSuggestion;
+}
+
+/**
+ * Error simulation flag (for testing)
+ */
+let shouldSimulateError = false;
+
+/**
+ * Enable or disable network error simulation
+ * @param enabled - Whether to simulate network errors
+ */
+export function simulateNetworkError(enabled: boolean): void {
+  shouldSimulateError = enabled;
 }
 
 export interface PersonaSuggestion {
@@ -107,8 +121,20 @@ function getPersonaName(personaId: string): string {
 
 /**
  * Generate AI response with optional persona suggestion
+ * @throws Error if network error simulation is enabled
  */
-export function generateAIResponse(userMessage: string): AIMessage {
+export async function generateAIResponse(
+  userMessage: string,
+): Promise<AIMessage> {
+  // Simulate network error if enabled
+  if (shouldSimulateError) {
+    throw new Error("Network error: Failed to connect to AI service");
+  }
+
+  // Simulate network delay (100-300ms)
+  const delay = 100 + Math.random() * 200;
+  await new Promise((resolve) => setTimeout(resolve, delay));
+
   const detectedPersona = detectPersona(userMessage);
 
   if (detectedPersona) {
