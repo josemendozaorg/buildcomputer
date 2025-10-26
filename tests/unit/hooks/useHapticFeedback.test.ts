@@ -71,10 +71,7 @@ describe('useHapticFeedback', () => {
 
   it('should call fallback when vibration not supported', () => {
     // Remove vibrate API
-    Object.defineProperty(navigator, 'vibrate', {
-      value: undefined,
-      configurable: true,
-    });
+    delete (navigator as { vibrate?: unknown }).vibrate;
 
     const fallback = vi.fn();
     const { result } = renderHook(() =>
