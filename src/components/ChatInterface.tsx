@@ -14,7 +14,12 @@ import {
   initConversationState,
   getNextConversationStep,
   ConversationState,
+  isVagueInput,
+  validateBudget,
+  generateClarificationMessage,
+  getBudgetGuidanceResponse,
 } from "../services/conversationService";
+import { retryWithBackoff } from "../utils/retry";
 
 export interface Message {
   id: string;
@@ -23,6 +28,10 @@ export interface Message {
   timestamp: Date;
   isWarning?: boolean;
   suggestions?: string[];
+  isError?: boolean;
+  retryable?: boolean;
+  attemptCount?: number;
+  resolved?: boolean;
 }
 
 export interface ChatInterfaceRef {
@@ -161,6 +170,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
     const [dynamicChips, setDynamicChips] = useState<string[]>(
       persistedConvState.dynamicChips,
     );
+    const [isProcessing, setIsProcessing] = useState(false);
 
     // Expose methods to parent component
     useImperativeHandle(ref, () => ({
@@ -214,10 +224,78 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       localStorage.setItem("dynamicChips", JSON.stringify(dynamicChips));
     }, [dynamicChips]);
 
-    const handleSend = () => {
-      if (!inputValue.trim()) return;
+    const handleSend = async () => {
+      if (!inputValue.trim() || isProcessing) return;
 
       const messageContent = inputValue;
+
+      // VALIDATION 1: Check for vague input
+      if (isVagueInput(messageContent)) {
+        const newState = {
+          ...conversationState,
+          vagueInputCount: conversationState.lastInputWasVague
+            ? conversationState.vagueInputCount + 1
+            : 1,
+          lastInputWasVague: true,
+        };
+        setConversationState(newState);
+
+        const clarification = generateClarificationMessage(
+          newState,
+          newState.vagueInputCount,
+        );
+
+        const clarificationMessage: Message = {
+          id: Date.now().toString(),
+          role: "ai",
+          content: clarification.message,
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, clarificationMessage]);
+        if (clarification.chips) {
+          setDynamicChips(clarification.chips);
+        }
+        setInputValue("");
+        return;
+      }
+
+      // VALIDATION 2: Budget validation at step 3
+      if (conversationState.step === 3) {
+        const budgetValidation = validateBudget(messageContent);
+        if (!budgetValidation.valid && budgetValidation.error) {
+          const errorMessage: Message = {
+            id: Date.now().toString(),
+            role: "ai",
+            content: budgetValidation.message || "",
+            timestamp: new Date(),
+            isWarning: true,
+          };
+
+          setMessages((prev) => [...prev, errorMessage]);
+
+          // Only get guidance for too_low or too_high errors
+          if (
+            budgetValidation.error === "too_low" ||
+            budgetValidation.error === "too_high"
+          ) {
+            const guidance = getBudgetGuidanceResponse(budgetValidation.error);
+            if (guidance.chips) {
+              setDynamicChips(guidance.chips);
+            }
+          }
+
+          setInputValue("");
+          return;
+        }
+      }
+
+      // Reset vague input tracking on valid input
+      setConversationState({
+        ...conversationState,
+        vagueInputCount: 0,
+        lastInputWasVague: false,
+      });
 
       // Add user message
       const userMessage: Message = {
@@ -235,13 +313,15 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         return newMessages;
       });
 
-      // Clear input
+      // Clear input and set processing state
       setInputValue("");
+      setIsProcessing(true);
 
-      // Generate AI response using DUAL service coordination
-      setTimeout(() => {
-        // STEP 1: Check mockAIService for persona detection (PRIORITY)
-        const aiResponse = generateAIResponse(messageContent);
+      // Generate AI response with retry logic
+      try {
+        const aiResponse = await retryWithBackoff(() =>
+          generateAIResponse(messageContent),
+        );
 
         if (aiResponse.suggestions) {
           // PERSONA DETECTED - Pause conversation flow
@@ -261,7 +341,6 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           });
 
           setPersonaSuggestion(aiResponse.suggestions);
-          // DO NOT advance conversationState - paused for persona suggestion
         } else {
           // NO PERSONA DETECTED - Advance conversation flow
           const convResponse = getNextConversationStep(
@@ -284,15 +363,42 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
             return newMessages;
           });
 
-          // Update dynamic chips from conversation service
           if (convResponse.chips) {
             setDynamicChips(convResponse.chips);
           }
 
-          // Trigger conversation state update
           setConversationState({ ...conversationState });
         }
-      }, 500); // Small delay to simulate AI thinking
+      } catch (_error) {
+        // Network error after all retries exhausted
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          role: "ai",
+          content:
+            "Hmm, that didn't work! No worries, let's give it another shot. 🔄",
+          timestamp: new Date(),
+          isError: true,
+          retryable: true,
+          attemptCount: 3,
+        };
+
+        setMessages((prev) => {
+          const newMessages = [...prev, errorMessage];
+          if (onMessagesChange) {
+            onMessagesChange(newMessages);
+          }
+          return newMessages;
+        });
+
+        // Provide escape path chips
+        setDynamicChips([
+          "Switch to Persona Mode",
+          "Report Issue",
+          "Start Over",
+        ]);
+      } finally {
+        setIsProcessing(false);
+      }
 
       // Call callback if provided
       if (onMessage) {
@@ -303,11 +409,13 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
     const handleKeyPress = (e: React.KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        handleSend();
+        void handleSend();
       }
     };
 
-    const handleChipClick = (value: string) => {
+    const handleChipClick = async (value: string) => {
+      if (isProcessing) return;
+
       // Auto-send when chip is clicked
       const userMessage: Message = {
         id: Date.now().toString(),
@@ -324,10 +432,13 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         return newMessages;
       });
 
-      // Generate AI response using DUAL service coordination
-      setTimeout(() => {
-        // STEP 1: Check mockAIService for persona detection (PRIORITY)
-        const aiResponse = generateAIResponse(value);
+      setIsProcessing(true);
+
+      // Generate AI response with retry logic
+      try {
+        const aiResponse = await retryWithBackoff(() =>
+          generateAIResponse(value),
+        );
 
         if (aiResponse.suggestions) {
           // PERSONA DETECTED - Pause conversation flow
@@ -347,10 +458,12 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           });
 
           setPersonaSuggestion(aiResponse.suggestions);
-          // DO NOT advance conversationState
         } else {
           // NO PERSONA - Advance conversation flow
-          const convResponse = getNextConversationStep(conversationState, value);
+          const convResponse = getNextConversationStep(
+            conversationState,
+            value,
+          );
 
           const aiMessage: Message = {
             id: Date.now().toString(),
@@ -367,15 +480,41 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
             return newMessages;
           });
 
-          // Update dynamic chips
           if (convResponse.chips) {
             setDynamicChips(convResponse.chips);
           }
 
-          // Trigger conversation state update
           setConversationState({ ...conversationState });
         }
-      }, 500);
+      } catch (_error) {
+        // Network error after all retries exhausted
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          role: "ai",
+          content:
+            "Hmm, that didn't work! No worries, let's give it another shot. 🔄",
+          timestamp: new Date(),
+          isError: true,
+          retryable: true,
+          attemptCount: 3,
+        };
+
+        setMessages((prev) => {
+          const newMessages = [...prev, errorMessage];
+          if (onMessagesChange) {
+            onMessagesChange(newMessages);
+          }
+          return newMessages;
+        });
+
+        setDynamicChips([
+          "Switch to Persona Mode",
+          "Report Issue",
+          "Start Over",
+        ]);
+      } finally {
+        setIsProcessing(false);
+      }
 
       if (onMessage) {
         onMessage(value);
@@ -493,6 +632,8 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         <div
           className="flex-1 overflow-y-auto p-4 space-y-4"
           data-testid="message-history"
+          aria-live="polite"
+          aria-relevant="additions"
         >
           {messages.map((message) => (
             <div
@@ -501,16 +642,45 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
             >
               <div
                 className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                  message.isWarning
-                    ? "bg-amber-50 border-2 border-amber-400 text-gray-900"
-                    : message.role === "user"
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-100 text-gray-900"
+                  message.isError
+                    ? "bg-red-50 border-2 border-red-400 text-gray-900"
+                    : message.isWarning
+                      ? "bg-amber-50 border-2 border-amber-400 text-gray-900"
+                      : message.role === "user"
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-900"
                 }`}
                 data-testid={
-                  message.isWarning ? "compatibility-warning" : undefined
+                  message.isError
+                    ? "error-message"
+                    : message.isWarning
+                      ? "compatibility-warning"
+                      : undefined
                 }
               >
+                {message.isError && (
+                  <div className="flex items-start gap-2 mb-2">
+                    <svg
+                      className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      data-testid="error-icon"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-red-900">
+                        Connection Error
+                        {message.attemptCount &&
+                          ` (${message.attemptCount}/3 attempts)`}
+                      </p>
+                    </div>
+                  </div>
+                )}
                 {message.isWarning && (
                   <div className="flex items-start gap-2 mb-2">
                     <svg
@@ -577,7 +747,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
               dynamicChips.map((chip, index) => (
                 <button
                   key={index}
-                  onClick={() => handleChipClick(chip)}
+                  onClick={() => void handleChipClick(chip)}
                   className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
                 >
                   {chip}
@@ -587,19 +757,19 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
               // LEVEL 3: Default chips (fallback)
               <>
                 <button
-                  onClick={() => handleChipClick("Gaming")}
+                  onClick={() => void handleChipClick("Gaming")}
                   className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
                 >
                   Gaming
                 </button>
                 <button
-                  onClick={() => handleChipClick("Work")}
+                  onClick={() => void handleChipClick("Work")}
                   className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
                 >
                   Work
                 </button>
                 <button
-                  onClick={() => handleChipClick("Content Creation")}
+                  onClick={() => void handleChipClick("Content Creation")}
                   className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
                 >
                   Content Creation
@@ -622,11 +792,11 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
               aria-label="Message input"
             />
             <button
-              onClick={handleSend}
+              onClick={() => void handleSend()}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() || isProcessing}
             >
-              Send
+              {isProcessing ? "Processing..." : "Send"}
             </button>
           </div>
         </div>
