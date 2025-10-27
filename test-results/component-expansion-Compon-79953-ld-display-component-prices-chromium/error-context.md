@@ -1,0 +1,189 @@
+# Page snapshot
+
+```yaml
+- main [ref=e4]:
+    - navigation [ref=e6]:
+        - generic [ref=e8]: BuildComputer
+    - main [ref=e9]:
+        - generic [ref=e10]:
+            - button "Talk to AI Builder" [ref=e11] [cursor=pointer]:
+                - img [ref=e12]
+                - text: Talk to AI Builder
+            - paragraph [ref=e14]: Get personalized recommendations through conversation
+        - generic [ref=e15]: or
+        - generic [ref=e16]:
+            - heading "Choose Your Story" [level=2] [ref=e17]
+            - generic [ref=e18]:
+                - button "🎮 Competitive Gamer Win every fight Valorant, CS2, Apex at 144+ FPS" [ref=e19] [cursor=pointer]:
+                    - generic [ref=e20]: 🎮
+                    - heading "Competitive Gamer" [level=3] [ref=e21]
+                    - paragraph [ref=e22]: Win every fight
+                    - paragraph [ref=e23]: Valorant, CS2, Apex at 144+ FPS
+                - button "🎬 Cinematic Gamer Live the story Cyberpunk, RDR2 with ray tracing" [ref=e24] [cursor=pointer]:
+                    - generic [ref=e25]: 🎬
+                    - heading "Cinematic Gamer" [level=3] [ref=e26]
+                    - paragraph [ref=e27]: Live the story
+                    - paragraph [ref=e28]: Cyberpunk, RDR2 with ray tracing
+                - button "🎨 Creator Bring ideas to life 4K video editing, 3D rendering" [ref=e29] [cursor=pointer]:
+                    - generic [ref=e30]: 🎨
+                    - heading "Creator" [level=3] [ref=e31]
+                    - paragraph [ref=e32]: Bring ideas to life
+                    - paragraph [ref=e33]: 4K video editing, 3D rendering
+                - button "🤖 AI Enthusiast Train the future Local LLM, ML model training" [ref=e34] [cursor=pointer]:
+                    - generic [ref=e35]: 🤖
+                    - heading "AI Enthusiast" [level=3] [ref=e36]
+                    - paragraph [ref=e37]: Train the future
+                    - paragraph [ref=e38]: Local LLM, ML model training
+                - button "📚 Student Study smarter Academic work, research, multi-tasking" [ref=e39] [cursor=pointer]:
+                    - generic [ref=e40]: 📚
+                    - heading "Student" [level=3] [ref=e41]
+                    - paragraph [ref=e42]: Study smarter
+                    - paragraph [ref=e43]: Academic work, research, multi-tasking
+                - button "💼 Professional Work without limits CAD, simulations, complex workflows" [ref=e44] [cursor=pointer]:
+                    - generic [ref=e45]: 💼
+                    - heading "Professional" [level=3] [ref=e46]
+                    - paragraph [ref=e47]: Work without limits
+                    - paragraph [ref=e48]: CAD, simulations, complex workflows
+                - button "🏠 Casual User Daily essentials Browse, stream, light gaming" [ref=e49] [cursor=pointer]:
+                    - generic [ref=e50]: 🏠
+                    - heading "Casual User" [level=3] [ref=e51]
+                    - paragraph [ref=e52]: Daily essentials
+                    - paragraph [ref=e53]: Browse, stream, light gaming
+                - button "Coming Soon 🔧 Custom Build I know what I need Component-by-component customization" [ref=e54] [cursor=pointer]:
+                    - generic [ref=e55]: Coming Soon
+                    - generic [ref=e56]: 🔧
+                    - heading "Custom Build" [level=3] [ref=e57]
+                    - paragraph [ref=e58]: I know what I need
+                    - paragraph [ref=e59]: Component-by-component customization
+        - generic [ref=e60]:
+            - generic [ref=e61]: Select Your Budget
+            - generic [ref=e62]:
+                - generic [ref=e64]: $1,500
+                - slider "Budget slider" [ref=e65] [cursor=pointer]: "1500"
+                - generic [ref=e66]:
+                    - generic [ref=e67]: $500
+                    - generic [ref=e68]: $5,000
+        - generic [ref=e69]:
+            - heading "Recommended Builds" [level=2] [ref=e70]
+            - generic [ref=e71]:
+                - generic [ref=e72]:
+                    - heading "Optimized Build" [level=3] [ref=e73]
+                    - generic [ref=e74]: $1,702
+                    - paragraph [ref=e75]: Best balance of performance and value for competitive gaming with high FPS
+                    - button "Hide Details" [active] [ref=e76] [cursor=pointer]
+                    - generic [ref=e77]:
+                        - generic [ref=e78]:
+                            - generic [ref=e79]:
+                                - generic [ref=e81]: CPU
+                                - generic [ref=e82]: $269
+                            - paragraph [ref=e83]: AMD Ryzen 7 7700X
+                            - paragraph [ref=e84]: AMD
+                            - generic [ref=e85]:
+                                - generic [ref=e86]: 8 cores
+                                - generic [ref=e87]: 16 threads
+                                - generic [ref=e88]: 4.5 GHz base clock
+                                - generic [ref=e89]: 5.4 GHz boost clock
+                        - generic [ref=e90]:
+                            - generic [ref=e91]:
+                                - generic [ref=e93]: GPU
+                                - generic [ref=e94]: $599
+                            - paragraph [ref=e95]: NVIDIA GeForce RTX 4070 SUPER
+                            - paragraph [ref=e96]: NVIDIA
+                            - generic [ref=e97]:
+                                - generic [ref=e98]: 12GB GDDR6X vram
+                                - generic [ref=e99]: 7,168 cuda cores
+                                - generic [ref=e100]: 2.48 GHz boost clock
+                        - generic [ref=e101]:
+                            - generic [ref=e102]:
+                                - generic [ref=e104]: Motherboard
+                                - generic [ref=e105]: $229
+                            - paragraph [ref=e106]: ASUS TUF GAMING B650-PLUS WIFI
+                            - paragraph [ref=e107]: ASUS
+                            - generic [ref=e108]:
+                                - generic [ref=e109]:
+                                    - button "AM5" [ref=e112]
+                                    - text: socket
+                                - generic [ref=e113]: B650 chipset
+                                - generic [ref=e114]:
+                                    - button "DDR5" [ref=e117]
+                                    - text: memory support
+                        - generic [ref=e118]:
+                            - generic [ref=e119]:
+                                - generic [ref=e121]: RAM
+                                - generic [ref=e122]: $139
+                            - paragraph [ref=e123]: G.Skill Trident Z5 32GB DDR5-6400
+                            - paragraph [ref=e124]: G.Skill
+                            - generic [ref=e125]:
+                                - generic [ref=e126]:
+                                    - button "32GB" [ref=e129]
+                                    - text: capacity
+                                - generic [ref=e130]:
+                                    - button "DDR5-6400" [ref=e133]
+                                    - text: speed
+                                - generic [ref=e134]: CL32 latency
+                        - generic [ref=e135]:
+                            - generic [ref=e136]:
+                                - generic [ref=e138]: Storage
+                                - generic [ref=e139]: $179
+                            - paragraph [ref=e140]: Samsung 990 Pro 2TB NVMe SSD
+                            - paragraph [ref=e141]: Samsung
+                            - generic [ref=e142]:
+                                - generic [ref=e143]:
+                                    - button "2TB" [ref=e146]
+                                    - text: capacity
+                                - generic [ref=e147]:
+                                    - button "PCIe 4.0 NVMe" [ref=e150]
+                                    - text: interface
+                                - generic [ref=e151]: 7,450 MB/s read speed
+                        - generic [ref=e152]:
+                            - generic [ref=e153]:
+                                - generic [ref=e155]: PSU
+                                - generic [ref=e156]: $129
+                            - paragraph [ref=e157]: Corsair RM850e 850W 80+ Gold
+                            - paragraph [ref=e158]: Corsair
+                            - generic [ref=e159]:
+                                - generic [ref=e160]:
+                                    - button "850W" [ref=e163]
+                                    - text: wattage
+                                - generic [ref=e164]:
+                                    - button "80+ Gold" [ref=e167]
+                                    - text: efficiency
+                                - generic [ref=e168]: Fully Modular modular
+                        - generic [ref=e169]:
+                            - generic [ref=e170]:
+                                - generic [ref=e172]: Case
+                                - generic [ref=e173]: $109
+                            - paragraph [ref=e174]: Lian Li Lancool 216
+                            - paragraph [ref=e175]: Lian Li
+                            - generic [ref=e176]:
+                                - generic [ref=e177]:
+                                    - button "ATX Mid Tower" [ref=e180]
+                                    - text: type
+                                - generic [ref=e181]: 9x 120mm fans cooling support
+                        - generic [ref=e182]:
+                            - generic [ref=e183]:
+                                - generic [ref=e185]: Cooling
+                                - generic [ref=e186]: $49
+                            - paragraph [ref=e187]: Deepcool AK400
+                            - paragraph [ref=e188]: Deepcool
+                            - generic [ref=e189]:
+                                - generic [ref=e190]: Air Cooler type
+                                - generic [ref=e191]: 155mm height
+                                - generic [ref=e192]: 220W TDP rating
+                - generic [ref=e193]:
+                    - heading "Performance Build" [level=3] [ref=e194]
+                    - generic [ref=e195]: $2,092
+                    - paragraph [ref=e196]: Maximum FPS and lowest latency for competitive advantage
+                    - button "View Details" [ref=e197] [cursor=pointer]
+                - generic [ref=e198]:
+                    - heading "Featured Build" [level=3] [ref=e199]
+                    - generic [ref=e200]: $2,526
+                    - paragraph [ref=e201]: Top-tier gaming experience with streaming capabilities
+                    - button "View Details" [ref=e202] [cursor=pointer]
+        - generic [ref=e203]:
+            - button "Refine with AI" [ref=e204] [cursor=pointer]:
+                - img [ref=e205]
+                - text: Refine with AI
+            - paragraph [ref=e207]: Get AI help to optimize your build
+    - paragraph [ref=e210]: © 2025 BuildComputer. All rights reserved.
+```
