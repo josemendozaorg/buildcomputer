@@ -6,6 +6,7 @@
  */
 
 import { useState, useImperativeHandle, forwardRef, useEffect } from "react";
+import { List } from "react-window";
 import {
   generateAIResponse,
   PersonaSuggestion,
@@ -20,6 +21,7 @@ import {
   getBudgetGuidanceResponse,
 } from "../services/conversationService";
 import { retryWithBackoff } from "../utils/retry";
+import ChatMessage from "./ChatMessage";
 
 export interface Message {
   id: string;
@@ -413,6 +415,13 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
       }
     };
 
+    const handleChipKeyDown = (e: React.KeyboardEvent, handler: () => void) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handler();
+      }
+    };
+
     const handleChipClick = async (value: string) => {
       if (isProcessing) return;
 
@@ -603,15 +612,16 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
           <div className="flex items-center gap-2">
             <button
               onClick={handleStartOver}
-              className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors"
-              aria-label="Start over conversation"
+              className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+              aria-label="Start over conversation and clear chat history"
             >
               Start Over
             </button>
             {onQuickSelectPersona && (
               <button
                 onClick={onQuickSelectPersona}
-                className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-green-700 hover:to-teal-700 transition-all"
+                className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-semibold rounded-lg hover:from-green-700 hover:to-teal-700 transition-all focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                aria-label="Switch to persona selection mode"
               >
                 Quick Select Persona
               </button>
@@ -619,7 +629,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
             {onClose && (
               <button
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 rounded"
                 aria-label="Close chat"
               >
                 <span className="sr-only">Close</span>✕
@@ -629,98 +639,69 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
         </div>
 
         {/* Message History */}
-        <div
-          className="flex-1 overflow-y-auto p-4 space-y-4"
-          data-testid="message-history"
-          aria-live="polite"
-          aria-relevant="additions"
-        >
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                  message.isError
-                    ? "bg-red-50 border-2 border-red-400 text-gray-900"
-                    : message.isWarning
-                      ? "bg-amber-50 border-2 border-amber-400 text-gray-900"
-                      : message.role === "user"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-900"
-                }`}
-                data-testid={
-                  message.isError
-                    ? "error-message"
-                    : message.isWarning
-                      ? "compatibility-warning"
-                      : undefined
-                }
-              >
-                {message.isError && (
-                  <div className="flex items-start gap-2 mb-2">
-                    <svg
-                      className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      data-testid="error-icon"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-red-900">
-                        Connection Error
-                        {message.attemptCount &&
-                          ` (${message.attemptCount}/3 attempts)`}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {message.isWarning && (
-                  <div className="flex items-start gap-2 mb-2">
-                    <svg
-                      className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      data-testid="warning-icon"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-amber-900">
-                        Compatibility Warning
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <p className="text-sm whitespace-pre-line">{message.content}</p>
-                {message.suggestions && message.suggestions.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-amber-200">
-                    <p className="text-xs font-semibold text-amber-900 mb-2">
-                      Suggested upgrades:
-                    </p>
-                    <ul className="text-sm space-y-1">
-                      {message.suggestions.map((suggestion, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <span className="text-amber-600">•</span>
-                          <span>{suggestion}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
+        {messages.length >= 50 ? (
+          // Virtual scrolling for large conversations (50+ messages)
+          <List
+            defaultHeight={600}
+            rowCount={messages.length}
+            rowHeight={120}
+            className="flex-1"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions text"
+            aria-atomic="false"
+            aria-label="AI conversation messages"
+            rowProps={{}}
+            rowComponent={({ index, style }) => {
+              const message = messages[index];
+              if (!message) return <div style={style} />;
+              return (
+                <div style={style} className="px-4">
+                  <ChatMessage message={message} />
+                </div>
+              );
+            }}
+          />
+        ) : (
+          // Standard rendering for conversations <50 messages
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4"
+            data-testid="message-history"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions text"
+            aria-atomic="false"
+            aria-label="AI conversation messages"
+          >
+            {messages.map((message) => (
+              <ChatMessage key={message.id} message={message} />
+            ))}
+          </div>
+        )}
+
+        {/* Visual typing indicator */}
+        {isProcessing && (
+          <div className="px-4 py-2 flex justify-start">
+            <div className="bg-gray-100 rounded-lg px-4 py-3 flex items-center gap-1">
+              <span
+                className="typing-indicator w-2 h-2 bg-gray-400 rounded-full"
+                style={{ animationDelay: "0ms" }}
+              />
+              <span
+                className="typing-indicator w-2 h-2 bg-gray-400 rounded-full"
+                style={{ animationDelay: "200ms" }}
+              />
+              <span
+                className="typing-indicator w-2 h-2 bg-gray-400 rounded-full"
+                style={{ animationDelay: "400ms" }}
+              />
             </div>
-          ))}
+          </div>
+        )}
+
+        {/* Hidden aria-live region for typing indicator */}
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {isProcessing ? "AI is typing" : ""}
         </div>
 
         {/* Quick Reply Chips - Three-level priority */}
@@ -731,13 +712,17 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
               <>
                 <button
                   onClick={handleAcceptPersona}
-                  className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-full text-sm font-semibold hover:from-green-700 hover:to-teal-700 transition-all shadow-md"
+                  onKeyDown={(e) => handleChipKeyDown(e, handleAcceptPersona)}
+                  className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-full text-sm font-semibold hover:from-green-700 hover:to-teal-700 transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  aria-label={`Accept persona suggestion: ${personaSuggestion.acceptLabel}`}
                 >
                   {personaSuggestion.acceptLabel}
                 </button>
                 <button
                   onClick={handleDeclinePersona}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+                  onKeyDown={(e) => handleChipKeyDown(e, handleDeclinePersona)}
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label={`Decline persona suggestion: ${personaSuggestion.declineLabel}`}
                 >
                   {personaSuggestion.declineLabel}
                 </button>
@@ -748,7 +733,11 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                 <button
                   key={index}
                   onClick={() => void handleChipClick(chip)}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+                  onKeyDown={(e) =>
+                    handleChipKeyDown(e, () => void handleChipClick(chip))
+                  }
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label={`Quick reply: ${chip}`}
                 >
                   {chip}
                 </button>
@@ -758,19 +747,34 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
               <>
                 <button
                   onClick={() => void handleChipClick("Gaming")}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+                  onKeyDown={(e) =>
+                    handleChipKeyDown(e, () => void handleChipClick("Gaming"))
+                  }
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Quick reply: Gaming"
                 >
                   Gaming
                 </button>
                 <button
                   onClick={() => void handleChipClick("Work")}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+                  onKeyDown={(e) =>
+                    handleChipKeyDown(e, () => void handleChipClick("Work"))
+                  }
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Quick reply: Work"
                 >
                   Work
                 </button>
                 <button
                   onClick={() => void handleChipClick("Content Creation")}
-                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors"
+                  onKeyDown={(e) =>
+                    handleChipKeyDown(
+                      e,
+                      () => void handleChipClick("Content Creation"),
+                    )
+                  }
+                  className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Quick reply: Content Creation"
                 >
                   Content Creation
                 </button>
@@ -793,8 +797,10 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
             />
             <button
               onClick={() => void handleSend()}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
               disabled={!inputValue.trim() || isProcessing}
+              aria-label="Send message"
+              aria-disabled={!inputValue.trim() || isProcessing}
             >
               {isProcessing ? "Processing..." : "Send"}
             </button>
