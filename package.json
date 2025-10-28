@@ -14,7 +14,7 @@
     "test:bdd": "bddgen && playwright test",
     "test:bdd:watch": "bddgen --watch",
     "bdd:gen": "bddgen",
-    "test:e2e": "playwright test tests/e2e",
+    "test:e2e": "playwright test --config playwright-e2e.config.ts",
     "test:coverage": "vitest run --coverage",
     "test:all": "pnpm type-check && pnpm test:unit && pnpm test:bdd && pnpm test:e2e",
     "storybook": "storybook dev -p 6006",
