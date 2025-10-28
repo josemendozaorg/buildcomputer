@@ -1,12 +1,11 @@
-import { Given, When, Then, Before } from "quickpickle";
-import { expect as vitestExpect } from "vitest";
+import { createBdd } from "playwright-bdd";
 import { expect } from "@playwright/test";
-import { PlaywrightWorld } from "@quickpickle/playwright";
-import "@quickpickle/playwright/world";
 import { spawn, ChildProcess } from "child_process";
 import { existsSync } from "fs";
 import { join } from "path";
 import AxeBuilder from "@axe-core/playwright";
+
+const { Given, When, Then } = createBdd();
 
 /**
  * Step Definitions for Project Setup and Landing Page Feature
@@ -15,70 +14,44 @@ import AxeBuilder from "@axe-core/playwright";
  * Project Setup and Landing Page feature.
  */
 
-interface BuildComputerWorld extends PlaywrightWorld {
-  // Add custom properties for test context
-  devServerProcess?: ChildProcess;
-  devServerUrl?: string;
-  devServerOutput?: string;
-  buildOutput?: string;
-  testResults?: any;
-  axeResults?: any;
-  typeErrorInjected?: boolean;
-  failingTestsCreated?: boolean;
-  testCommand?: string;
-  storybookStoryOpened?: boolean;
-  a11yIssuesCreated?: boolean;
-}
-
-// Initialize browser before UI scenarios
-Before({ tags: "@ui" }, async function (world: BuildComputerWorld) {
-  // Ensure browser/page is initialized for UI tests
-  if (!this.page && this.init) {
-    await this.init();
-  }
-});
-
 // ============================================================================
 // INFRASTRUCTURE & TOOLING STEP DEFINITIONS
 // ============================================================================
 
 Given(
   "the BuildComputer repository has been cloned",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Verify key project files exist
     const projectRoot = process.cwd();
-    vitestExpect(
+    expect(
       existsSync(join(projectRoot, "package.json")),
       "package.json should exist",
     ).toBe(true);
-    vitestExpect(
+    expect(
       existsSync(join(projectRoot, ".git")),
       ".git directory should exist",
     ).toBe(true);
   },
 );
 
-Given(
-  "pnpm is installed on the system",
-  async function (world: BuildComputerWorld) {
-    // Verify pnpm is available
-    const { execSync } = await import("child_process");
-    try {
-      const version = execSync("pnpm --version", { encoding: "utf-8" });
-      vitestExpect(version).toBeTruthy();
-    } catch (error) {
-      throw new Error("pnpm is not installed or not in PATH");
-    }
-  },
-);
+Given("pnpm is installed on the system", async function ({ page }) {
+  // Verify pnpm is available
+  const { execSync } = await import("child_process");
+  try {
+    const version = execSync("pnpm --version", { encoding: "utf-8" });
+    expect(version).toBeTruthy();
+  } catch (error) {
+    throw new Error("pnpm is not installed or not in PATH");
+  }
+});
 
 When(
   "the developer runs {string} to install dependencies",
-  async function (world: BuildComputerWorld, command: string) {
+  async function ({ page }) {
     // Dependencies should already be installed in test environment
     // Verify node_modules exists
     const projectRoot = process.cwd();
-    vitestExpect(
+    expect(
       existsSync(join(projectRoot, "node_modules")),
       "node_modules should exist",
     ).toBe(true);
@@ -87,640 +60,548 @@ When(
 
 When(
   "the developer runs {string} to start the development server",
-  async function (world: BuildComputerWorld, command: string) {
+  async function ({ page }) {
     // For testing, verify vite config exists (server would start in real scenario)
     const projectRoot = process.cwd();
     const viteConfigPath = join(projectRoot, "vite.config.ts");
-    vitestExpect(existsSync(viteConfigPath)).toBe(true);
+    expect(existsSync(viteConfigPath)).toBe(true);
 
     // Simulate server output for terminal check
-    world.devServerOutput = "Local: http://localhost:5173";
-    world.devServerUrl = "http://localhost:5173";
+    this.devServerOutput = "Local: http://localhost:5173";
+    this.devServerUrl = "http://localhost:5173";
   },
 );
 
 Then(
   "the development server should start successfully on port {int}",
-  async function (world: BuildComputerWorld, port: number) {
+  async function ({ page }) {
     // For testing, verify config and simulated output
     const projectRoot = process.cwd();
     const viteConfigPath = join(projectRoot, "vite.config.ts");
-    vitestExpect(existsSync(viteConfigPath)).toBe(true);
+    expect(existsSync(viteConfigPath)).toBe(true);
 
     // Verify the port matches expected
-    vitestExpect(port).toBe(5173);
-    world.devServerUrl = `http://localhost:${port}`;
+    expect(port).toBe(5173);
+    this.devServerUrl = `http://localhost:${port}`;
   },
 );
 
-Then(
-  "the terminal should display {string}",
-  async function (world: BuildComputerWorld, text: string) {
-    // Check that the dev server output contains the expected text
-    vitestExpect(
-      world.devServerOutput,
-      "Dev server output should be captured",
-    ).toBeTruthy();
-    vitestExpect(
-      world.devServerOutput?.includes(text),
-      `Terminal output should contain "${text}"`,
-    ).toBe(true);
-  },
-);
+Then("the terminal should display {string}", async function ({ page }) {
+  // Check that the dev server output contains the expected text
+  expect(
+    this.devServerOutput,
+    "Dev server output should be captured",
+  ).toBeTruthy();
+  expect(
+    this.devServerOutput?.includes(text),
+    `Terminal output should contain "${text}"`,
+  ).toBe(true);
+});
 
 Then(
-  "hot module replacement \\(HMR) should be enabled",
-  async function (world: BuildComputerWorld) {
+  "hot module replacement (HMR) should be enabled",
+  async function ({ page }) {
     // HMR is enabled by default in Vite, verify vite.config.ts exists
     const projectRoot = process.cwd();
     const viteConfigPath = join(projectRoot, "vite.config.ts");
-    vitestExpect(
+    expect(
       existsSync(viteConfigPath),
       "vite.config.ts should exist for HMR",
     ).toBe(true);
   },
 );
 
-Given(
-  "the development server is running",
-  async function (world: BuildComputerWorld) {
-    // For testing, verify vite config exists (server would be running in real scenario)
-    const projectRoot = process.cwd();
-    const viteConfigPath = join(projectRoot, "vite.config.ts");
-    vitestExpect(
-      existsSync(viteConfigPath),
-      "vite.config.ts should exist",
-    ).toBe(true);
-  },
-);
+Given("the development server is running", async function ({ page }) {
+  // For testing, verify vite config exists (server would be running in real scenario)
+  const projectRoot = process.cwd();
+  const viteConfigPath = join(projectRoot, "vite.config.ts");
+  expect(existsSync(viteConfigPath), "vite.config.ts should exist").toBe(true);
+});
 
-Given(
-  "the landing page is open in a browser",
-  async function (world: BuildComputerWorld) {
-    // For testing, we'll skip actual browser opening since HMR is hard to test in automation
-    // In real scenario, this would open a browser to localhost:5173
-    world.hmrTestSkipped = true;
-  },
-);
+Given("the landing page is open in a browser", async function ({ page }) {
+  // For testing, we'll skip actual browser opening since HMR is hard to test in automation
+  // In real scenario, this would open a browser to localhost:5173
+  this.hmrTestSkipped = true;
+});
 
 When(
   "the developer modifies a React component file",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // For testing, we verify component files exist that could be modified
     const projectRoot = process.cwd();
     const componentPath = join(projectRoot, "src/components/Hero.tsx");
-    vitestExpect(
-      existsSync(componentPath),
-      "Component files should exist",
-    ).toBe(true);
+    expect(existsSync(componentPath), "Component files should exist").toBe(
+      true,
+    );
   },
 );
 
-When("saves the file", async function (world: BuildComputerWorld) {
+When("saves the file", async function ({ page }) {
   // File save would trigger HMR in real scenario
   // For testing, we just verify the capability exists
 });
 
 Then(
   "the browser should update instantly without full page reload",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // HMR is enabled by default in Vite - verify config
     const projectRoot = process.cwd();
     const viteConfigPath = join(projectRoot, "vite.config.ts");
-    vitestExpect(existsSync(viteConfigPath), "Vite config exists for HMR").toBe(
-      true,
-    );
+    expect(existsSync(viteConfigPath), "Vite config exists for HMR").toBe(true);
   },
 );
 
 Then(
   "the component changes should be visible within {int}ms",
-  async function (world: BuildComputerWorld, ms: number) {
+  async function ({ page }) {
     // In real scenario, would measure update time
     // For testing, verify HMR is configured (fast updates are default in Vite)
-    vitestExpect(ms).toBeGreaterThan(0);
+    expect(ms).toBeGreaterThan(0);
   },
 );
 
-Then(
-  "the application state should be preserved",
-  async function (world: BuildComputerWorld) {
-    // Vite HMR preserves state by default for React Fast Refresh
-    // Verify React plugin is configured
-    const projectRoot = process.cwd();
-    const viteConfigPath = join(projectRoot, "vite.config.ts");
-    vitestExpect(existsSync(viteConfigPath)).toBe(true);
-  },
-);
+Then("the application state should be preserved", async function ({ page }) {
+  // Vite HMR preserves state by default for React Fast Refresh
+  // Verify React plugin is configured
+  const projectRoot = process.cwd();
+  const viteConfigPath = join(projectRoot, "vite.config.ts");
+  expect(existsSync(viteConfigPath)).toBe(true);
+});
 
 Given(
   "the project is configured with TypeScript strict mode",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Verify tsconfig.json exists and has strict mode enabled
     const projectRoot = process.cwd();
     const tsconfigPath = join(projectRoot, "tsconfig.json");
-    vitestExpect(existsSync(tsconfigPath), "tsconfig.json should exist").toBe(
-      true,
-    );
+    expect(existsSync(tsconfigPath), "tsconfig.json should exist").toBe(true);
 
     const { readFileSync } = await import("fs");
     const tsconfigContent = readFileSync(tsconfigPath, "utf-8");
     // Check for strict mode in file content (tsconfig allows comments)
-    vitestExpect(tsconfigContent).toContain('"strict": true');
+    expect(tsconfigContent).toContain('"strict": true');
   },
 );
 
 When(
-  "the developer writes code with a type error \\(e.g., assigning string to number)",
-  async function (world: BuildComputerWorld) {
+  "the developer writes code with a type error (e.g., assigning string to number)",
+  async function ({ page }) {
     // For testing, we'll verify TypeScript is configured to catch errors
     // In real scenario, would write invalid code and check compilation
-    world.typeErrorCreated = true;
+    this.typeErrorCreated = true;
   },
 );
 
 When(
   "the developer runs {string} or checks the IDE",
-  async function (world: BuildComputerWorld, command: string) {
+  async function ({ page }) {
     // Run TypeScript build command
     const { execSync } = await import("child_process");
     try {
       execSync(command, { encoding: "utf-8", stdio: "pipe" });
-      world.buildOutput = "Build succeeded";
+      this.buildOutput = "Build succeeded";
     } catch (error: any) {
-      world.buildOutput = error.stdout || error.stderr || error.message;
-      world.buildFailed = true;
+      this.buildOutput = error.stdout || error.stderr || error.message;
+      this.buildFailed = true;
     }
   },
 );
 
-Then(
-  "TypeScript should report a type error",
-  async function (world: BuildComputerWorld) {
-    // If we actually ran build with error, it would fail
-    // For testing, verify TypeScript is configured
-    const projectRoot = process.cwd();
-    const tsconfigPath = join(projectRoot, "tsconfig.json");
-    vitestExpect(existsSync(tsconfigPath)).toBe(true);
-  },
-);
+Then("TypeScript should report a type error", async function ({ page }) {
+  // If we actually ran build with error, it would fail
+  // For testing, verify TypeScript is configured
+  const projectRoot = process.cwd();
+  const tsconfigPath = join(projectRoot, "tsconfig.json");
+  expect(existsSync(tsconfigPath)).toBe(true);
+});
 
 Then(
   "the build should fail with a clear error message",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // In real scenario with actual type error, build would fail
     // For testing, verify build system exists
     const projectRoot = process.cwd();
     const viteConfigPath = join(projectRoot, "vite.config.ts");
-    vitestExpect(existsSync(viteConfigPath)).toBe(true);
+    expect(existsSync(viteConfigPath)).toBe(true);
   },
 );
 
 Then(
   "the error location should be shown with file path and line number",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // TypeScript errors include file paths and line numbers by default
     // Verify tsconfig is configured for good error reporting
     const projectRoot = process.cwd();
     const tsconfigPath = join(projectRoot, "tsconfig.json");
-    vitestExpect(existsSync(tsconfigPath)).toBe(true);
+    expect(existsSync(tsconfigPath)).toBe(true);
   },
 );
 
-Given(
-  "Husky and lint-staged are configured",
-  async function (world: BuildComputerWorld) {
-    // Verify package.json has lint-staged configuration
-    const projectRoot = process.cwd();
-    const packageJsonPath = join(projectRoot, "package.json");
-    vitestExpect(existsSync(packageJsonPath)).toBe(true);
+Given("Husky and lint-staged are configured", async function ({ page }) {
+  // Verify package.json has lint-staged configuration
+  const projectRoot = process.cwd();
+  const packageJsonPath = join(projectRoot, "package.json");
+  expect(existsSync(packageJsonPath)).toBe(true);
 
-    const { readFileSync } = await import("fs");
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+  const { readFileSync } = await import("fs");
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
 
-    // Check for lint-staged or husky in package.json
-    const hasLintStaged =
-      packageJson.devDependencies?.["lint-staged"] ||
-      packageJson["lint-staged"] ||
-      packageJson.devDependencies?.["husky"];
+  // Check for lint-staged or husky in package.json
+  const hasLintStaged =
+    packageJson.devDependencies?.["lint-staged"] ||
+    packageJson["lint-staged"] ||
+    packageJson.devDependencies?.["husky"];
 
-    // For testing, we just verify the package.json structure exists
-    vitestExpect(packageJson).toBeTruthy();
-  },
-);
+  // For testing, we just verify the package.json structure exists
+  expect(packageJson).toBeTruthy();
+});
 
 Given(
   "the developer has staged files with formatting issues",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // In real scenario, would stage files with formatting issues
     // For testing, verify git is initialized
     const projectRoot = process.cwd();
     const gitPath = join(projectRoot, ".git");
-    vitestExpect(existsSync(gitPath)).toBe(true);
+    expect(existsSync(gitPath)).toBe(true);
   },
 );
 
-When(
-  "the developer runs {string}",
-  async function (world: BuildComputerWorld, command: string) {
-    // Store command for various scenarios (git commit, test run, etc.)
-    // Determine context based on command
-    if (command.includes("commit")) {
-      world.commitCommand = command;
-    } else if (command.includes("test")) {
-      world.testCommand = command;
-    } else {
-      // Generic command storage
-      world.testCommand = command;
-    }
-  },
-);
+When("the developer runs {string}", async function ({ page }) {
+  // Store command for various scenarios (git commit, test run, etc.)
+  // Determine context based on command
+  if (command.includes("commit")) {
+    this.commitCommand = command;
+  } else if (command.includes("test")) {
+    this.testCommand = command;
+  } else {
+    // Generic command storage
+    this.testCommand = command;
+  }
+});
 
-Then(
-  "the pre-commit hook should run automatically",
-  async function (world: BuildComputerWorld) {
-    // Pre-commit hooks would run via Husky
-    // For testing, verify .git exists
-    const projectRoot = process.cwd();
-    const gitPath = join(projectRoot, ".git");
-    vitestExpect(existsSync(gitPath)).toBe(true);
-  },
-);
+Then("the pre-commit hook should run automatically", async function ({ page }) {
+  // Pre-commit hooks would run via Husky
+  // For testing, verify .git exists
+  const projectRoot = process.cwd();
+  const gitPath = join(projectRoot, ".git");
+  expect(existsSync(gitPath)).toBe(true);
+});
 
-Then(
-  "Prettier should format the staged files",
-  async function (world: BuildComputerWorld) {
-    // Verify Prettier is configured
-    const projectRoot = process.cwd();
-    const packageJsonPath = join(projectRoot, "package.json");
-    const { readFileSync } = await import("fs");
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+Then("Prettier should format the staged files", async function ({ page }) {
+  // Verify Prettier is configured
+  const projectRoot = process.cwd();
+  const packageJsonPath = join(projectRoot, "package.json");
+  const { readFileSync } = await import("fs");
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
 
-    const hasPrettier = packageJson.devDependencies?.["prettier"];
-    vitestExpect(packageJson.devDependencies).toBeTruthy();
-  },
-);
+  const hasPrettier = packageJson.devDependencies?.["prettier"];
+  expect(packageJson.devDependencies).toBeTruthy();
+});
 
-Then(
-  "ESLint should check for linting errors",
-  async function (world: BuildComputerWorld) {
-    // Verify project structure exists (ESLint would be configured in package.json)
-    const projectRoot = process.cwd();
-    const packageJsonPath = join(projectRoot, "package.json");
-    vitestExpect(existsSync(packageJsonPath)).toBe(true);
-  },
-);
+Then("ESLint should check for linting errors", async function ({ page }) {
+  // Verify project structure exists (ESLint would be configured in package.json)
+  const projectRoot = process.cwd();
+  const packageJsonPath = join(projectRoot, "package.json");
+  expect(existsSync(packageJsonPath)).toBe(true);
+});
 
-Then(
-  "the commit should proceed if all checks pass",
-  async function (world: BuildComputerWorld) {
-    // In real scenario, commit would proceed after hooks pass
-    // For testing, verify git is configured
-    const projectRoot = process.cwd();
-    const gitPath = join(projectRoot, ".git");
-    vitestExpect(existsSync(gitPath)).toBe(true);
-  },
-);
+Then("the commit should proceed if all checks pass", async function ({ page }) {
+  // In real scenario, commit would proceed after hooks pass
+  // For testing, verify git is configured
+  const projectRoot = process.cwd();
+  const gitPath = join(projectRoot, ".git");
+  expect(existsSync(gitPath)).toBe(true);
+});
 
 // Scenario 5: Vitest
-Given(
-  "the project has Vitest configured",
-  async function (world: BuildComputerWorld) {
-    const projectRoot = process.cwd();
-    const vitestConfigPath = join(projectRoot, "vitest.config.ts");
-    vitestExpect(existsSync(vitestConfigPath)).toBe(true);
-  },
-);
+Given("the project has Vitest configured", async function ({ page }) {
+  const projectRoot = process.cwd();
+  const vitestConfigPath = join(projectRoot, "vitest.config.ts");
+  expect(existsSync(vitestConfigPath)).toBe(true);
+});
 
-Given(
-  "unit tests exist in the tests\\/unit\\/ directory",
-  async function (world: BuildComputerWorld) {
-    const projectRoot = process.cwd();
-    const testsPath = join(projectRoot, "tests/unit");
-    vitestExpect(existsSync(testsPath)).toBe(true);
-  },
-);
+Given("unit tests exist in the unit test directory", async function ({ page }) {
+  const projectRoot = process.cwd();
+  const testsPath = join(projectRoot, "tests/unit");
+  expect(existsSync(testsPath)).toBe(true);
+});
 
-Then(
-  "Vitest should execute all unit tests",
-  async function (world: BuildComputerWorld) {
-    // Verify vitest config exists
-    const projectRoot = process.cwd();
-    const vitestConfigPath = join(projectRoot, "vitest.config.ts");
-    vitestExpect(existsSync(vitestConfigPath)).toBe(true);
-  },
-);
+Then("Vitest should execute all unit tests", async function ({ page }) {
+  // Verify vitest config exists
+  const projectRoot = process.cwd();
+  const vitestConfigPath = join(projectRoot, "vitest.config.ts");
+  expect(existsSync(vitestConfigPath)).toBe(true);
+});
 
 Then(
   "test results should be displayed in the terminal",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Tests display results by default in Vitest
-    vitestExpect(true).toBe(true);
+    expect(true).toBe(true);
   },
 );
 
-Then(
-  "test coverage report should be generated",
-  async function (world: BuildComputerWorld) {
-    // Verify coverage is configured in vitest.config.ts
-    const projectRoot = process.cwd();
-    const vitestConfigPath = join(projectRoot, "vitest.config.ts");
-    vitestExpect(existsSync(vitestConfigPath)).toBe(true);
-  },
-);
+Then("test coverage report should be generated", async function ({ page }) {
+  // Verify coverage is configured in vitest.config.ts
+  const projectRoot = process.cwd();
+  const vitestConfigPath = join(projectRoot, "vitest.config.ts");
+  expect(existsSync(vitestConfigPath)).toBe(true);
+});
 
-Then(
-  "all tests should pass with green checkmarks",
-  async function (world: BuildComputerWorld) {
-    // In real scenario, tests would all pass
-    // For testing, verify test files exist
-    const projectRoot = process.cwd();
-    const testsPath = join(projectRoot, "tests/unit");
-    vitestExpect(existsSync(testsPath)).toBe(true);
-  },
-);
+Then("all tests should pass with green checkmarks", async function ({ page }) {
+  // In real scenario, tests would all pass
+  // For testing, verify test files exist
+  const projectRoot = process.cwd();
+  const testsPath = join(projectRoot, "tests/unit");
+  expect(existsSync(testsPath)).toBe(true);
+});
 
 // Scenario 6: Storybook
-Given(
-  "Storybook is configured with Vitest addon",
-  async function (world: BuildComputerWorld) {
-    // For testing, verify project structure exists (Storybook would be configured)
-    const projectRoot = process.cwd();
-    const packageJsonPath = join(projectRoot, "package.json");
-    vitestExpect(existsSync(packageJsonPath)).toBe(true);
-  },
-);
+Given("Storybook is configured with Vitest addon", async function ({ page }) {
+  // For testing, verify project structure exists (Storybook would be configured)
+  const projectRoot = process.cwd();
+  const packageJsonPath = join(projectRoot, "package.json");
+  expect(existsSync(packageJsonPath)).toBe(true);
+});
 
 Given(
-  "component stories exist in the stories\\/ directory",
-  async function (world: BuildComputerWorld) {
+  "component stories exist in the stories directory",
+  async function ({ page }) {
     // For testing, verify project structure exists (stories would exist in real scenario)
     const projectRoot = process.cwd();
     const packageJsonPath = join(projectRoot, "package.json");
-    vitestExpect(existsSync(packageJsonPath)).toBe(true);
+    expect(existsSync(packageJsonPath)).toBe(true);
   },
 );
 
-Then(
-  "Storybook should start on port {int}",
-  async function (world: BuildComputerWorld, port: number) {
-    // Verify storybook config exists
-    const projectRoot = process.cwd();
-    const packageJsonPath = join(projectRoot, "package.json");
-    vitestExpect(existsSync(packageJsonPath)).toBe(true);
-  },
-);
+Then("Storybook should start on port {int}", async function ({ page }) {
+  // Verify storybook config exists
+  const projectRoot = process.cwd();
+  const packageJsonPath = join(projectRoot, "package.json");
+  expect(existsSync(packageJsonPath)).toBe(true);
+});
 
 Then(
   "all component stories should be visible in the sidebar",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Stories would be visible when Storybook runs
     const projectRoot = process.cwd();
     const packageJsonPath = join(projectRoot, "package.json");
-    vitestExpect(existsSync(packageJsonPath)).toBe(true);
+    expect(existsSync(packageJsonPath)).toBe(true);
   },
 );
 
 Then(
   "components should render correctly in the canvas",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Components render in Storybook canvas
-    vitestExpect(true).toBe(true);
+    expect(true).toBe(true);
   },
 );
 
 Then(
   "accessibility checks should run automatically with the a11y addon",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // a11y addon would run automatically
     const projectRoot = process.cwd();
     const packageJsonPath = join(projectRoot, "package.json");
-    vitestExpect(existsSync(packageJsonPath)).toBe(true);
+    expect(existsSync(packageJsonPath)).toBe(true);
   },
 );
 
 // Scenario 7: Playwright
-Given(
-  "Playwright is configured for E2E testing",
-  async function (world: BuildComputerWorld) {
-    const projectRoot = process.cwd();
-    const playwrightConfigPath = join(projectRoot, "playwright.config.ts");
-    vitestExpect(existsSync(playwrightConfigPath)).toBe(true);
-  },
-);
+Given("Playwright is configured for E2E testing", async function ({ page }) {
+  const projectRoot = process.cwd();
+  const playwrightConfigPath = join(projectRoot, "playwright.config.ts");
+  expect(existsSync(playwrightConfigPath)).toBe(true);
+});
 
-Given(
-  "E2E tests exist in the tests\\/e2e\\/ directory",
-  async function (world: BuildComputerWorld) {
-    const projectRoot = process.cwd();
-    const e2ePath = join(projectRoot, "tests/e2e");
-    vitestExpect(existsSync(e2ePath)).toBe(true);
-  },
-);
+Given("E2E tests exist in the E2E test directory", async function ({ page }) {
+  const projectRoot = process.cwd();
+  const e2ePath = join(projectRoot, "tests/e2e");
+  expect(existsSync(e2ePath)).toBe(true);
+});
 
 Then(
   "Playwright should launch Chromium browser in headless mode",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Playwright config specifies headless mode
     const projectRoot = process.cwd();
     const playwrightConfigPath = join(projectRoot, "playwright.config.ts");
-    vitestExpect(existsSync(playwrightConfigPath)).toBe(true);
+    expect(existsSync(playwrightConfigPath)).toBe(true);
   },
 );
 
 Then(
   "all E2E tests should execute against the dev server",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // E2E tests run against configured server
     const projectRoot = process.cwd();
     const e2ePath = join(projectRoot, "tests/e2e");
-    vitestExpect(existsSync(e2ePath)).toBe(true);
+    expect(existsSync(e2ePath)).toBe(true);
   },
 );
 
-Then(
-  "test results should show pass\\/fail status",
-  async function (world: BuildComputerWorld) {
-    // Playwright shows pass/fail by default
-    vitestExpect(true).toBe(true);
-  },
-);
+Then("test results should show pass/fail status", async function ({ page }) {
+  // Playwright shows pass/fail by default
+  expect(true).toBe(true);
+});
 
 Then(
   "screenshots should be captured for any failures",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Playwright captures screenshots on failure by default
     const projectRoot = process.cwd();
     const playwrightConfigPath = join(projectRoot, "playwright.config.ts");
-    vitestExpect(existsSync(playwrightConfigPath)).toBe(true);
+    expect(existsSync(playwrightConfigPath)).toBe(true);
   },
 );
 
 // Scenario 8: QuickPickle
 Given(
   "QuickPickle is configured with Gherkin syntax support",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     const projectRoot = process.cwd();
     const vitestConfigPath = join(projectRoot, "vitest.config.ts");
-    vitestExpect(existsSync(vitestConfigPath)).toBe(true);
+    expect(existsSync(vitestConfigPath)).toBe(true);
   },
 );
 
 Given(
-  ".feature files exist in the tests\\/bdd\\/features\\/ directory",
-  async function (world: BuildComputerWorld) {
+  ".feature files exist in the BDD features directory",
+  async function ({ page }) {
     const projectRoot = process.cwd();
     const featuresPath = join(projectRoot, "tests/bdd/features");
-    vitestExpect(existsSync(featuresPath)).toBe(true);
+    expect(existsSync(featuresPath)).toBe(true);
   },
 );
 
-Then(
-  "QuickPickle should parse all .feature files",
-  async function (world: BuildComputerWorld) {
-    // QuickPickle parses .feature files automatically
-    const projectRoot = process.cwd();
-    const featuresPath = join(projectRoot, "tests/bdd/features");
-    vitestExpect(existsSync(featuresPath)).toBe(true);
-  },
-);
+Then("QuickPickle should parse all .feature files", async function ({ page }) {
+  // QuickPickle parses .feature files automatically
+  const projectRoot = process.cwd();
+  const featuresPath = join(projectRoot, "tests/bdd/features");
+  expect(existsSync(featuresPath)).toBe(true);
+});
 
 Then(
   "step definitions should be matched to Gherkin steps",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Step definitions in steps directory
     const projectRoot = process.cwd();
     const stepsPath = join(projectRoot, "tests/bdd/steps");
-    vitestExpect(existsSync(stepsPath)).toBe(true);
+    expect(existsSync(stepsPath)).toBe(true);
   },
 );
 
-Then(
-  "tests should execute in Vitest runner",
-  async function (world: BuildComputerWorld) {
-    // QuickPickle runs in Vitest
-    const projectRoot = process.cwd();
-    const vitestConfigPath = join(projectRoot, "vitest.config.ts");
-    vitestExpect(existsSync(vitestConfigPath)).toBe(true);
-  },
-);
+Then("tests should execute in Vitest runner", async function ({ page }) {
+  // QuickPickle runs in Vitest
+  const projectRoot = process.cwd();
+  const vitestConfigPath = join(projectRoot, "vitest.config.ts");
+  expect(existsSync(vitestConfigPath)).toBe(true);
+});
 
 Then(
-  "results should show which scenarios passed\\/failed",
-  async function (world: BuildComputerWorld) {
+  "results should show which scenarios passed/failed",
+  async function ({ page }) {
     // Vitest shows test results
-    vitestExpect(true).toBe(true);
+    expect(true).toBe(true);
   },
 );
 
 // Scenario 9: Production Build
-Given(
-  "the project is ready for deployment",
-  async function (world: BuildComputerWorld) {
-    // Verify build configuration exists
-    const projectRoot = process.cwd();
-    const viteConfigPath = join(projectRoot, "vite.config.ts");
-    vitestExpect(existsSync(viteConfigPath)).toBe(true);
-  },
-);
+Given("the project is ready for deployment", async function ({ page }) {
+  // Verify build configuration exists
+  const projectRoot = process.cwd();
+  const viteConfigPath = join(projectRoot, "vite.config.ts");
+  expect(existsSync(viteConfigPath)).toBe(true);
+});
+
+Then("Vite should bundle the application", async function ({ page }) {
+  // Vite bundles when pnpm build runs
+  const projectRoot = process.cwd();
+  const viteConfigPath = join(projectRoot, "vite.config.ts");
+  expect(existsSync(viteConfigPath)).toBe(true);
+});
 
 Then(
-  "Vite should bundle the application",
-  async function (world: BuildComputerWorld) {
-    // Vite bundles when pnpm build runs
-    const projectRoot = process.cwd();
-    const viteConfigPath = join(projectRoot, "vite.config.ts");
-    vitestExpect(existsSync(viteConfigPath)).toBe(true);
-  },
-);
-
-Then(
-  "output should be written to the dist\\/ directory",
-  async function (world: BuildComputerWorld) {
-    // Build outputs to dist/ by default
-    vitestExpect(true).toBe(true);
+  "output should be written to the dist directory",
+  async function ({ page }) {
+    // Build outputs to dist\/ by default
+    expect(true).toBe(true);
   },
 );
 
 Then(
   "JavaScript bundles should be minified and tree-shaken",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Vite minifies and tree-shakes by default in production
-    vitestExpect(true).toBe(true);
+    expect(true).toBe(true);
   },
 );
 
-Then(
-  "CSS should be extracted and optimized",
-  async function (world: BuildComputerWorld) {
-    // Vite extracts and optimizes CSS by default
-    vitestExpect(true).toBe(true);
-  },
-);
+Then("CSS should be extracted and optimized", async function ({ page }) {
+  // Vite extracts and optimizes CSS by default
+  expect(true).toBe(true);
+});
 
 Then(
   "the build should complete successfully with size report",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Build shows size report by default
-    vitestExpect(true).toBe(true);
+    expect(true).toBe(true);
   },
 );
 
-Then(
-  "bundle size should be under {int}KB gzipped",
-  async function (world: BuildComputerWorld, size: number) {
-    // Size check would happen after actual build
-    vitestExpect(size).toBeGreaterThan(0);
-  },
-);
+Then("bundle size should be under {int}KB gzipped", async function ({ page }) {
+  // Size check would happen after actual build
+  expect(size).toBeGreaterThan(0);
+});
 
-Given(
-  "the landing page is deployed and accessible",
-  async function (world: BuildComputerWorld) {
-    // Verify dev server is running on localhost:5173
-    world.devServerUrl = "http://localhost:5173";
+Given("the landing page is deployed and accessible", async function ({ page }) {
+  // Verify dev server is running on localhost:5173
+  this.devServerUrl = "http://localhost:5173";
 
-    // Check if server is accessible
-    const response = await fetch(world.devServerUrl);
-    expect(response.ok).toBe(true);
-  },
-);
+  // Check if server is accessible
+  const response = await fetch(this.devServerUrl);
+  expect(response.ok).toBe(true);
+});
 
 When(
-  "a user visits the URL on a desktop browser \\({int}x{int})",
-  async function (world: BuildComputerWorld, width: number, height: number) {
+  "a user visits the URL on a desktop browser at {int}x{int}",
+  async function ({ page }) {
     // Set viewport to desktop size
-    await world.page.setViewportSize({ width, height });
+    await page.setViewportSize({ width, height });
 
     // Navigate to landing page
-    const url = world.devServerUrl || "http://localhost:5173";
-    await world.page.goto(url);
+    const url = this.devServerUrl || "http://localhost:5173";
+    await page.goto(url);
 
     // Wait for page to load
-    await world.page.waitForLoadState("domcontentloaded");
+    await page.waitForLoadState("domcontentloaded");
   },
 );
 
 When(
-  "a user visits the URL on a mobile device \\({int}x{int})",
-  async function (world: BuildComputerWorld, width: number, height: number) {
+  "a user visits the URL on a mobile device at {int}x{int}",
+  async function ({ page }) {
     // Set viewport to mobile size
-    await world.page.setViewportSize({ width, height });
+    await page.setViewportSize({ width, height });
 
     // Navigate to landing page
-    const url = world.devServerUrl || "http://localhost:5173";
-    await world.page.goto(url);
+    const url = this.devServerUrl || "http://localhost:5173";
+    await page.goto(url);
 
     // Wait for page to load
-    await world.page.waitForLoadState("domcontentloaded");
+    await page.waitForLoadState("domcontentloaded");
   },
 );
 
 Then(
   "the page should load and display First Contentful Paint within {float} seconds",
-  async function (world: BuildComputerWorld, seconds: number) {
+  async function ({ page }) {
     // Get performance metrics
-    const performanceTiming = await world.page.evaluate(() => {
+    const performanceTiming = await page.evaluate(() => {
       const perf = performance.getEntriesByType("paint");
       const fcp = perf.find((entry) => entry.name === "first-contentful-paint");
       return fcp ? fcp.startTime : 0;
@@ -728,15 +609,15 @@ Then(
 
     // Verify FCP is within limit (convert to milliseconds)
     const maxTime = seconds * 1000;
-    vitestExpect(performanceTiming).toBeLessThan(maxTime);
+    expect(performanceTiming).toBeLessThan(maxTime);
   },
 );
 
 Then(
   "the hero section should display {string} title prominently",
-  async function (world: BuildComputerWorld, title: string) {
+  async function ({ page }) {
     // Find h1 containing the title text
-    const h1Element = world.page.locator(`h1:has-text("${title}")`);
+    const h1Element = page.locator(`h1:has-text("${title}")`);
 
     // Verify it's visible
     await expect(h1Element).toBeVisible();
@@ -745,25 +626,25 @@ Then(
 
 Then(
   "the tagline should be visible below the title",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Find paragraph text below the h1 (description/tagline)
-    const descriptionElement = world.page.locator("section p").first();
+    const descriptionElement = page.locator("section p").first();
 
     // Verify it exists and is visible
     await expect(descriptionElement).toBeVisible();
 
     // Verify it has content
     const text = await descriptionElement.textContent();
-    vitestExpect(text).toBeTruthy();
-    vitestExpect(text!.length).toBeGreaterThan(0);
+    expect(text).toBeTruthy();
+    expect(text!.length).toBeGreaterThan(0);
   },
 );
 
 Then(
   "the description text should be readable with proper line height",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Get paragraph element
-    const paragraph = world.page.locator("section p").first();
+    const paragraph = page.locator("section p").first();
 
     // Verify paragraph is visible (which implies it has readable text/styling)
     await expect(paragraph).toBeVisible();
@@ -775,102 +656,95 @@ Then(
     });
 
     // Verify font size is reasonable (should be at least 14px)
-    vitestExpect(fontSize).toBeGreaterThan(12);
+    expect(fontSize).toBeGreaterThan(12);
   },
 );
 
 Then(
   "the {string} button should be centered and visually prominent",
-  async function (world: BuildComputerWorld, buttonText: string) {
+  async function ({ page }) {
     // Find button containing the text
-    const button = world.page.getByRole("button", { name: buttonText });
+    const button = page.getByRole("button", { name: buttonText });
 
     // Verify button is visible and has proper styling
     await expect(button).toBeVisible();
 
     // Verify button has reasonable size (not tiny)
     const buttonBox = await button.boundingBox();
-    vitestExpect(buttonBox).toBeTruthy();
+    expect(buttonBox).toBeTruthy();
     if (buttonBox) {
-      vitestExpect(buttonBox.width).toBeGreaterThan(80); // Button should be at least 80px wide
-      vitestExpect(buttonBox.height).toBeGreaterThan(20); // Button should be at least 20px tall
+      expect(buttonBox.width).toBeGreaterThan(80); // Button should be at least 80px wide
+      expect(buttonBox.height).toBeGreaterThan(20); // Button should be at least 20px tall
     }
   },
 );
 
-Then(
-  "the navigation header should be at the top",
-  async function (world: BuildComputerWorld) {
-    // Find header element
-    const header = world.page.locator("header").first();
+Then("the navigation header should be at the top", async function ({ page }) {
+  // Find header element
+  const header = page.locator("header").first();
 
-    // Verify header exists
-    await expect(header).toBeVisible();
+  // Verify header exists
+  await expect(header).toBeVisible();
 
-    // Verify header contains navigation
-    const nav = header.locator("nav");
-    await expect(nav).toBeVisible();
+  // Verify header contains navigation
+  const nav = header.locator("nav");
+  await expect(nav).toBeVisible();
 
-    // Verify header contains brand name
-    const brandText = await header.textContent();
-    vitestExpect(brandText).toContain("BuildComputer");
-  },
-);
+  // Verify header contains brand name
+  const brandText = await header.textContent();
+  expect(brandText).toContain("BuildComputer");
+});
 
 Then(
   "the footer should be at the bottom with placeholder links",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Find footer element
-    const footer = world.page.locator("footer").first();
+    const footer = page.locator("footer").first();
 
     // Verify footer exists and is visible
     await expect(footer).toBeVisible();
 
     // Verify footer has content (copyright text)
     const footerText = await footer.textContent();
-    vitestExpect(footerText).toBeTruthy();
-    vitestExpect(footerText).toMatch(/©|Copyright|BuildComputer/);
+    expect(footerText).toBeTruthy();
+    expect(footerText).toMatch(/©|Copyright|BuildComputer/);
   },
 );
 
 Then(
   "the viewport meta tag should ensure proper scaling",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Check that the viewport meta tag exists in the page
-    const viewportMeta = await world.page
+    const viewportMeta = await page
       .locator('meta[name="viewport"]')
       .getAttribute("content");
-    vitestExpect(viewportMeta).toBeTruthy();
-    vitestExpect(viewportMeta).toContain("width=device-width");
-    vitestExpect(viewportMeta).toContain("initial-scale=1");
+    expect(viewportMeta).toBeTruthy();
+    expect(viewportMeta).toContain("width=device-width");
+    expect(viewportMeta).toContain("initial-scale=1");
   },
 );
 
 Then(
   "the layout should adapt to mobile screen size",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Verify body width doesn't significantly exceed viewport (allow 10px tolerance for browser rendering)
-    const bodyWidth = await world.page.evaluate(
-      () => document.body.scrollWidth,
-    );
-    const viewportWidth = await world.page.viewportSize();
+    const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+    const viewportWidth = await page.viewportSize();
 
     // Allow small tolerance for browser rendering differences
-    vitestExpect(bodyWidth).toBeLessThanOrEqual(
-      (viewportWidth?.width || 0) + 10,
-    );
+    expect(bodyWidth).toBeLessThanOrEqual((viewportWidth?.width || 0) + 10);
 
     // Verify main content container adapts to mobile
-    const container = world.page.locator(".container").first();
+    const container = page.locator(".container").first();
     await expect(container).toBeVisible();
   },
 );
 
 Then(
-  "the hero title should be smaller but readable \\(responsive typography)",
-  async function (world: BuildComputerWorld) {
+  "the hero title should be smaller but readable (responsive typography)",
+  async function ({ page }) {
     // Find hero title and check font size
-    const h1Element = world.page.locator("section h1").first();
+    const h1Element = page.locator("section h1").first();
     await expect(h1Element).toBeVisible();
 
     const fontSize = await h1Element.evaluate((el) => {
@@ -880,192 +754,175 @@ Then(
 
     // On mobile (375px), title should be readable but smaller than desktop
     // Typically 24px-48px is good for mobile h1
-    vitestExpect(fontSize).toBeGreaterThan(24); // readable minimum
-    vitestExpect(fontSize).toBeLessThan(60); // smaller than desktop (which is typically 3rem = 48px)
+    expect(fontSize).toBeGreaterThan(24); // readable minimum
+    expect(fontSize).toBeLessThan(60); // smaller than desktop (which is typically 3rem = 48px)
   },
 );
 
 Then(
   "the {string} button should be at least {int}x{int}px for touch",
   async function (
-    world: BuildComputerWorld,
+    { page },
     buttonText: string,
     minWidth: number,
     minHeight: number,
   ) {
     // Find button and verify it meets minimum touch target size (44x44px per WCAG)
-    const button = world.page.getByRole("button", { name: buttonText });
+    const button = page.getByRole("button", { name: buttonText });
     await expect(button).toBeVisible();
 
     const buttonBox = await button.boundingBox();
-    vitestExpect(buttonBox).toBeTruthy();
+    expect(buttonBox).toBeTruthy();
     if (buttonBox) {
-      vitestExpect(buttonBox.width).toBeGreaterThanOrEqual(minWidth);
-      vitestExpect(buttonBox.height).toBeGreaterThanOrEqual(minHeight);
+      expect(buttonBox.width).toBeGreaterThanOrEqual(minWidth);
+      expect(buttonBox.height).toBeGreaterThanOrEqual(minHeight);
     }
   },
 );
 
 Then(
   "all content should fit within the viewport without horizontal scrolling",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Check that document width doesn't significantly exceed viewport width
-    const scrollWidth = await world.page.evaluate(
+    const scrollWidth = await page.evaluate(
       () => document.documentElement.scrollWidth,
     );
-    const clientWidth = await world.page.evaluate(
+    const clientWidth = await page.evaluate(
       () => document.documentElement.clientWidth,
     );
 
     // scrollWidth should be close to clientWidth (allow 10px tolerance for browser rendering)
-    vitestExpect(scrollWidth).toBeLessThanOrEqual(clientWidth + 10);
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 10);
   },
 );
 
 Then(
   "the navigation should collapse or adapt for mobile",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Verify header/navigation is present and visible on mobile
-    const header = world.page.locator("header").first();
+    const header = page.locator("header").first();
     await expect(header).toBeVisible();
 
     // Verify header adapts to mobile (doesn't overflow)
     const headerBox = await header.boundingBox();
-    const viewportWidth = await world.page.viewportSize();
+    const viewportWidth = await page.viewportSize();
 
-    vitestExpect(headerBox).toBeTruthy();
+    expect(headerBox).toBeTruthy();
     if (headerBox && viewportWidth) {
-      vitestExpect(headerBox.width).toBeLessThanOrEqual(viewportWidth.width);
+      expect(headerBox.width).toBeLessThanOrEqual(viewportWidth.width);
     }
   },
 );
 
-Given(
-  "the user is viewing the landing page",
-  async function (world: BuildComputerWorld) {
-    // Navigate to the landing page and wait for it to load
-    const url =
-      world.devServerUrl || world.worldConfig?.host || "http://localhost:5173";
-    await world.page.goto(url, { waitUntil: "domcontentloaded" });
+Given("the user is viewing the landing page", async function ({ page }) {
+  // Navigate to the landing page and wait for it to load
+  const url =
+    this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
+  await page.goto(url, { waitUntil: "domcontentloaded" });
 
-    // Verify page is loaded by checking for key elements
-    const header = world.page.locator("header").first();
-    await expect(header).toBeVisible();
-  },
-);
+  // Verify page is loaded by checking for key elements
+  const header = page.locator("header").first();
+  await expect(header).toBeVisible();
+});
 
-When(
-  "the user hovers over the {string} button",
-  async function (world: BuildComputerWorld, buttonText: string) {
-    // Find button and hover over it
-    const button = world.page.getByRole("button", { name: buttonText });
-    await button.hover();
+When("the user hovers over the {string} button", async function ({ page }) {
+  // Find button and hover over it
+  const button = page.getByRole("button", { name: buttonText });
+  await button.hover();
 
-    // Store reference for later steps
-    world.hoveredButton = button;
-  },
-);
+  // Store reference for later steps
+  this.hoveredButton = button;
+});
 
 Then(
-  "the button should display a hover state \\(color change, slight scale)",
-  async function (world: BuildComputerWorld) {
+  "the button should display a hover state (color change, slight scale)",
+  async function ({ page }) {
     // Verify button is visible
     const button =
-      world.hoveredButton ||
-      world.page.getByRole("button", { name: "Get Started" });
+      this.hoveredButton || page.getByRole("button", { name: "Get Started" });
     await expect(button).toBeVisible();
 
     // Check that button has hover:bg-blue-700 class applied
     // Since we can't directly check pseudo-classes, we verify the button has the class definition
     const buttonClasses = await button.getAttribute("class");
-    vitestExpect(buttonClasses).toContain("hover:bg-blue-700");
+    expect(buttonClasses).toContain("hover:bg-blue-700");
   },
 );
 
-Then(
-  "the cursor should change to pointer",
-  async function (world: BuildComputerWorld) {
-    // Verify button has cursor pointer style
-    const button =
-      world.hoveredButton ||
-      world.page.getByRole("button", { name: "Get Started" });
+Then("the cursor should change to pointer", async function ({ page }) {
+  // Verify button has cursor pointer style
+  const button =
+    this.hoveredButton || page.getByRole("button", { name: "Get Started" });
 
-    const cursor = await button.evaluate((el) => {
-      return window.getComputedStyle(el).cursor;
-    });
+  const cursor = await button.evaluate((el) => {
+    return window.getComputedStyle(el).cursor;
+  });
 
-    vitestExpect(cursor).toBe("pointer");
-  },
-);
+  expect(cursor).toBe("pointer");
+});
 
-When("the user clicks the button", async function (world: BuildComputerWorld) {
+When("the user clicks the button", async function ({ page }) {
   // Click the button
   const button =
-    world.hoveredButton ||
-    world.page.getByRole("button", { name: "Get Started" });
+    this.hoveredButton || page.getByRole("button", { name: "Get Started" });
   await button.click();
 
   // Store reference for later steps
-  world.clickedButton = button;
+  this.clickedButton = button;
 });
 
 Then(
-  "the button should display an active\\/pressed state",
-  async function (world: BuildComputerWorld) {
+  "the button should display an active/pressed state",
+  async function ({ page }) {
     // Verify button is still visible after click
     const button =
-      world.clickedButton ||
-      world.page.getByRole("button", { name: "Get Started" });
+      this.clickedButton || page.getByRole("button", { name: "Get Started" });
     await expect(button).toBeVisible();
 
     // Button should be interactive and not disabled
     const isEnabled = await button.isEnabled();
-    vitestExpect(isEnabled).toBe(true);
+    expect(isEnabled).toBe(true);
   },
 );
 
 Then(
-  "the button should provide visual feedback \\(currently no navigation)",
-  async function (world: BuildComputerWorld) {
+  "the button should provide visual feedback (currently no navigation)",
+  async function ({ page }) {
     // Verify button exists and is clickable (provides visual feedback via CSS transitions)
     const button =
-      world.clickedButton ||
-      world.page.getByRole("button", { name: "Get Started" });
+      this.clickedButton || page.getByRole("button", { name: "Get Started" });
     await expect(button).toBeVisible();
 
     // Verify button has transition class for visual feedback
     const buttonClasses = await button.getAttribute("class");
-    vitestExpect(buttonClasses).toContain("transition");
+    expect(buttonClasses).toContain("transition");
   },
 );
 
-When(
-  "the user presses the Tab key",
-  async function (world: BuildComputerWorld) {
-    // Press Tab key to move focus
-    await world.page.keyboard.press("Tab");
-  },
-);
+When("the user presses the Tab key", async function ({ page }) {
+  // Press Tab key to move focus
+  await page.keyboard.press("Tab");
+});
 
 Then(
   "the focus should move to the first focusable element",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Verify that an element has focus
-    const focusedElement = await world.page.evaluate(() => {
+    const focusedElement = await page.evaluate(() => {
       const activeElement = document.activeElement;
       return activeElement ? activeElement.tagName : null;
     });
 
-    vitestExpect(focusedElement).toBeTruthy();
-    vitestExpect(focusedElement).not.toBe("BODY"); // Focus should not be on body
+    expect(focusedElement).toBeTruthy();
+    expect(focusedElement).not.toBe("BODY"); // Focus should not be on body
   },
 );
 
 Then(
-  "a visible focus indicator should appear \\(outline or ring)",
-  async function (world: BuildComputerWorld) {
+  "a visible focus indicator should appear (outline or ring)",
+  async function ({ page }) {
     // Verify focused element has visible outline or ring
-    const focusedElement = world.page.locator(":focus");
+    const focusedElement = page.locator(":focus");
     await expect(focusedElement).toBeVisible();
 
     // Check that element has focus styles (outline or ring)
@@ -1079,208 +936,186 @@ Then(
     });
 
     // Should have some kind of outline/ring (not 'none' or '0px')
-    vitestExpect(outlineStyle.outlineWidth).not.toBe("0px");
+    expect(outlineStyle.outlineWidth).not.toBe("0px");
   },
 );
 
-When(
-  "the user continues pressing Tab",
-  async function (world: BuildComputerWorld) {
-    // Press Tab multiple times to move through elements
-    await world.page.keyboard.press("Tab");
-    await world.page.keyboard.press("Tab");
-  },
-);
+When("the user continues pressing Tab", async function ({ page }) {
+  // Press Tab multiple times to move through elements
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+});
 
 Then(
   "focus should move through all interactive elements in logical order",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Verify current focused element is still an interactive element (button, link, etc.)
-    const focusedTagName = await world.page.evaluate(() => {
+    const focusedTagName = await page.evaluate(() => {
       return document.activeElement?.tagName;
     });
 
     // Should be a focusable element (BUTTON, A, INPUT, etc.)
-    vitestExpect(["BUTTON", "A", "INPUT", "TEXTAREA", "SELECT"]).toContain(
+    expect(["BUTTON", "A", "INPUT", "TEXTAREA", "SELECT"]).toContain(
       focusedTagName,
     );
   },
 );
 
-Then(
-  "the {string} button should be reachable",
-  async function (world: BuildComputerWorld, buttonText: string) {
-    // Tab until we find the button (max 10 attempts)
-    let foundButton = false;
-    for (let i = 0; i < 10; i++) {
-      const focusedText = await world.page.evaluate(() => {
-        return document.activeElement?.textContent?.trim();
-      });
+Then("the {string} button should be reachable", async function ({ page }) {
+  // Tab until we find the button (max 10 attempts)
+  let foundButton = false;
+  for (let i = 0; i < 10; i++) {
+    const focusedText = await page.evaluate(() => {
+      return document.activeElement?.textContent?.trim();
+    });
 
-      if (focusedText === buttonText) {
-        foundButton = true;
-        break;
-      }
-
-      await world.page.keyboard.press("Tab");
+    if (focusedText === buttonText) {
+      foundButton = true;
+      break;
     }
 
-    vitestExpect(foundButton).toBe(true);
-  },
-);
+    await page.keyboard.press("Tab");
+  }
 
-When(
-  "the user presses Enter on the focused button",
-  async function (world: BuildComputerWorld) {
-    // Press Enter key to activate the focused button
-    await world.page.keyboard.press("Enter");
-  },
-);
+  expect(foundButton).toBe(true);
+});
+
+When("the user presses Enter on the focused button", async function ({ page }) {
+  // Press Enter key to activate the focused button
+  await page.keyboard.press("Enter");
+});
 
 Then(
-  "the button should activate \\(same as clicking)",
-  async function (world: BuildComputerWorld) {
+  "the button should activate (same as clicking)",
+  async function ({ page }) {
     // Verify button activated by checking navigation occurred
     // After pressing Enter on "Get Started", should navigate to /build
-    await world.page.waitForTimeout(500);
+    await page.waitForTimeout(500);
 
-    const currentUrl = world.page.url();
-    vitestExpect(currentUrl).toContain("/build");
+    const currentUrl = page.url();
+    expect(currentUrl).toContain("/build");
   },
 );
 
 Given(
-  "the user is using a screen reader \\(NVDA, JAWS, or VoiceOver)",
-  async function (world: BuildComputerWorld) {
+  "the user is using a screen reader (NVDA, JAWS, or VoiceOver)",
+  async function ({ page }) {
     // For automated testing, we verify semantic HTML and accessibility attributes
     // rather than running an actual screen reader
     // This step is a marker that we're testing screen reader compatibility
-    world.screenReaderMode = true;
+    this.screenReaderMode = true;
   },
 );
 
-When(
-  "the user navigates to the landing page",
-  async function (world: BuildComputerWorld) {
-    // Navigate to the landing page
-    const url =
-      world.devServerUrl || world.worldConfig?.host || "http://localhost:5173";
-    await world.page.goto(url, { waitUntil: "domcontentloaded" });
-  },
-);
+When("the user navigates to the landing page", async function ({ page }) {
+  // Navigate to the landing page
+  const url =
+    this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
+  await page.goto(url, { waitUntil: "domcontentloaded" });
+});
 
-Then(
-  "the page title should be announced",
-  async function (world: BuildComputerWorld) {
-    // Verify page has a title that screen readers can announce
-    const pageTitle = await world.page.title();
-    vitestExpect(pageTitle).toBeTruthy();
-    vitestExpect(pageTitle.length).toBeGreaterThan(0);
-  },
-);
+Then("the page title should be announced", async function ({ page }) {
+  // Verify page has a title that screen readers can announce
+  const pageTitle = await page.title();
+  expect(pageTitle).toBeTruthy();
+  expect(pageTitle.length).toBeGreaterThan(0);
+});
 
 Then(
-  "the semantic structure should be clear \\(header, main, footer)",
-  async function (world: BuildComputerWorld) {
+  "the semantic structure should be clear (header, main, footer)",
+  async function ({ page }) {
     // Verify semantic HTML landmarks exist
-    const header = world.page.locator("header").first();
+    const header = page.locator("header").first();
     await expect(header).toBeVisible();
 
-    const main = world.page.locator("main").first();
+    const main = page.locator("main").first();
     await expect(main).toBeVisible();
 
-    const footer = world.page.locator("footer").first();
+    const footer = page.locator("footer").first();
     await expect(footer).toBeVisible();
   },
 );
 
 Then(
   "the hero heading should be announced as {string}",
-  async function (world: BuildComputerWorld, level: string) {
+  async function ({ page }) {
     // Verify h1 heading exists in hero section
-    const h1 = world.page.locator("h1").first();
+    const h1 = page.locator("h1").first();
     await expect(h1).toBeVisible();
 
     // Verify it's actually an h1 tag (heading level 1)
     const tagName = await h1.evaluate((el) => el.tagName.toLowerCase());
-    vitestExpect(tagName).toBe("h1");
+    expect(tagName).toBe("h1");
   },
 );
 
 Then(
   "the {string} button should be announced as {string}",
-  async function (
-    world: BuildComputerWorld,
-    buttonText: string,
-    announcement: string,
-  ) {
+  async function ({ page }, buttonText: string, announcement: string) {
     // Verify button exists and has correct role
-    const button = world.page.getByRole("button", { name: buttonText });
+    const button = page.getByRole("button", { name: buttonText });
     await expect(button).toBeVisible();
 
     // Verify it's actually a button element
     const tagName = await button.evaluate((el) => el.tagName.toLowerCase());
-    vitestExpect(["button", "input"]).toContain(tagName);
+    expect(["button", "input"]).toContain(tagName);
   },
 );
 
 Then(
-  "all images \\(if any) should have descriptive alt text",
-  async function (world: BuildComputerWorld) {
+  "all images (if any) should have descriptive alt text",
+  async function ({ page }) {
     // Find all img tags on the page
-    const images = await world.page.locator("img").all();
+    const images = await page.locator("img").all();
 
     // If there are images, verify each has alt text
     for (const img of images) {
       const alt = await img.getAttribute("alt");
       // Alt attribute should exist (can be empty string for decorative images)
-      vitestExpect(alt).not.toBeNull();
+      expect(alt).not.toBeNull();
     }
   },
 );
 
 Then(
   "the page should be fully navigable with screen reader shortcuts",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Verify page has proper landmark regions for screen reader navigation
     // Check for heading hierarchy
-    const headings = await world.page.locator("h1, h2, h3, h4, h5, h6").all();
-    vitestExpect(headings.length).toBeGreaterThan(0);
+    const headings = await page.locator("h1, h2, h3, h4, h5, h6").all();
+    expect(headings.length).toBeGreaterThan(0);
 
     // Verify all interactive elements are keyboard accessible (already tested in keyboard nav)
-    const buttons = await world.page.locator("button").all();
-    vitestExpect(buttons.length).toBeGreaterThan(0);
+    const buttons = await page.locator("button").all();
+    expect(buttons.length).toBeGreaterThan(0);
   },
 );
 
-Given(
-  "the landing page is rendered in a browser",
-  async function (world: BuildComputerWorld) {
-    // Navigate to the landing page
-    const url =
-      world.devServerUrl || world.worldConfig?.host || "http://localhost:5173";
-    await world.page.goto(url, { waitUntil: "domcontentloaded" });
+Given("the landing page is rendered in a browser", async function ({ page }) {
+  // Navigate to the landing page
+  const url =
+    this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
+  await page.goto(url, { waitUntil: "domcontentloaded" });
 
-    // Wait for page to be ready
-    const header = world.page.locator("header").first();
-    await expect(header).toBeVisible();
-  },
-);
+  // Wait for page to be ready
+  const header = page.locator("header").first();
+  await expect(header).toBeVisible();
+});
 
 When(
-  "an automated accessibility scan runs \\(axe-core via Storybook or Playwright)",
-  async function (world: BuildComputerWorld) {
+  "an automated accessibility scan runs (axe-core via Storybook or Playwright)",
+  async function ({ page }) {
     // Run axe accessibility scan
-    const axeBuilder = new AxeBuilder({ page: world.page });
-    world.axeResults = await axeBuilder.analyze();
+    const axeBuilder = new AxeBuilder({ page: page });
+    this.axeResults = await axeBuilder.analyze();
   },
 );
 
 Then(
   "no critical accessibility violations should be detected",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Verify no critical or serious violations
-    const violations = world.axeResults?.violations || [];
+    const violations = this.axeResults?.violations || [];
 
     // Filter for critical and serious violations
     const criticalViolations = violations.filter(
@@ -1294,15 +1129,15 @@ Then(
       );
     }
 
-    vitestExpect(criticalViolations.length).toBe(0);
+    expect(criticalViolations.length).toBe(0);
   },
 );
 
 Then(
   "color contrast ratio should be at least {float}:1 for normal text",
-  async function (world: BuildComputerWorld, _ratio: number) {
+  async function ({ page }) {
     // Check for color contrast violations in axe results
-    const violations = world.axeResults?.violations || [];
+    const violations = this.axeResults?.violations || [];
 
     const contrastViolations = violations.filter(
       (v: any) =>
@@ -1316,15 +1151,15 @@ Then(
       );
     }
 
-    vitestExpect(contrastViolations.length).toBe(0);
+    expect(contrastViolations.length).toBe(0);
   },
 );
 
 Then(
   "all interactive elements should have accessible names",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Check for missing accessible names in axe results
-    const violations = world.axeResults?.violations || [];
+    const violations = this.axeResults?.violations || [];
 
     const nameViolations = violations.filter(
       (v: any) =>
@@ -1338,15 +1173,15 @@ Then(
       );
     }
 
-    vitestExpect(nameViolations.length).toBe(0);
+    expect(nameViolations.length).toBe(0);
   },
 );
 
 Then(
-  "heading hierarchy should be logical \\(no skipped levels)",
-  async function (world: BuildComputerWorld) {
+  "heading hierarchy should be logical (no skipped levels)",
+  async function ({ page }) {
     // Check for heading hierarchy violations in axe results
-    const violations = world.axeResults?.violations || [];
+    const violations = this.axeResults?.violations || [];
 
     const headingViolations = violations.filter(
       (v: any) => v.id === "heading-order",
@@ -1359,15 +1194,15 @@ Then(
       );
     }
 
-    vitestExpect(headingViolations.length).toBe(0);
+    expect(headingViolations.length).toBe(0);
   },
 );
 
 Then(
   "ARIA attributes should be used correctly where needed",
-  async function (world: BuildComputerWorld) {
+  async function ({ page }) {
     // Check for ARIA-related violations in axe results
-    const violations = world.axeResults?.violations || [];
+    const violations = this.axeResults?.violations || [];
 
     const ariaViolations = violations.filter(
       (v: any) => v.id.startsWith("aria-") || v.id.includes("aria"),
@@ -1380,7 +1215,7 @@ Then(
       );
     }
 
-    vitestExpect(ariaViolations.length).toBe(0);
+    expect(ariaViolations.length).toBe(0);
   },
 );
 
@@ -1390,137 +1225,119 @@ Then(
 
 Given(
   "the developer has written code with TypeScript errors",
-  async function (world: BuildComputerWorld) {
-    world.typeErrorInjected = true;
+  async function ({ page }) {
+    this.typeErrorInjected = true;
   },
 );
 
-Then(
-  "the build should fail immediately",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
-  },
-);
+Then("the build should fail immediately", async function ({ page }) {
+  expect(true).toBe(true);
+});
 
 Then(
   "TypeScript compiler should output error details",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
+  async function ({ page }) {
+    expect(true).toBe(true);
   },
 );
 
 Then(
   "the terminal should show file paths and line numbers",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
+  async function ({ page }) {
+    expect(true).toBe(true);
   },
 );
 
 Then(
-  "the dist\\/ directory should not be created or updated",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
+  "the dist directory should not be created or updated",
+  async function ({ page }) {
+    expect(true).toBe(true);
   },
 );
 
-Then(
-  "the exit code should be non-zero",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
-  },
-);
+Then("the exit code should be non-zero", async function ({ page }) {
+  expect(true).toBe(true);
+});
 
-Given(
-  "the developer has written failing tests",
-  async function (world: BuildComputerWorld) {
-    world.failingTestsCreated = true;
-  },
-);
+Given("the developer has written failing tests", async function ({ page }) {
+  this.failingTestsCreated = true;
+});
 
 When(
   "the developer runs {string} before deployment",
-  async function (world: BuildComputerWorld, command: string) {
-    world.testCommand = command;
+  async function ({ page }) {
+    this.testCommand = command;
   },
 );
 
 Then(
   "the test suite should execute and report failures",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
+  async function ({ page }) {
+    expect(true).toBe(true);
   },
 );
 
 Then(
   "failing test output should show expected vs actual values",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
+  async function ({ page }) {
+    expect(true).toBe(true);
   },
 );
 
-Then(
-  "the command should exit with non-zero status",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
-  },
-);
+Then("the command should exit with non-zero status", async function ({ page }) {
+  expect(true).toBe(true);
+});
 
 Then(
-  "CI\\/CD pipeline \\(if configured) should block deployment",
-  async function (_world: BuildComputerWorld) {
+  "CI/CD pipeline (if configured) should block deployment",
+  async function ({ page }) {
     // CI/CD would block deployment on test failures
     // For testing, verify basic project structure
     const projectRoot = process.cwd();
     const packageJsonPath = join(projectRoot, "package.json");
-    vitestExpect(existsSync(packageJsonPath)).toBe(true);
+    expect(existsSync(packageJsonPath)).toBe(true);
   },
 );
+
+Given("a component story is open in Storybook", async function ({ page }) {
+  this.storybookStoryOpened = true;
+});
 
 Given(
-  "a component story is open in Storybook",
-  async function (world: BuildComputerWorld) {
-    world.storybookStoryOpened = true;
+  "the component has accessibility issues (e.g., poor contrast)",
+  async function ({ page }) {
+    this.a11yIssuesCreated = true;
   },
 );
 
-Given(
-  "the component has accessibility issues \\(e.g., poor contrast)",
-  async function (world: BuildComputerWorld) {
-    world.a11yIssuesCreated = true;
-  },
-);
-
-When(
-  "the a11y addon scans the component",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
-  },
-);
+When("the a11y addon scans the component", async function ({ page }) {
+  expect(true).toBe(true);
+});
 
 Then(
   "violations should be displayed in the {string} panel",
-  async function (this: BuildComputerWorld, _panelName: string) {
-    vitestExpect(true).toBe(true);
+  async function ({ page }) {
+    expect(true).toBe(true);
   },
 );
 
 Then(
-  "each violation should show severity level \\(critical, serious, moderate)",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
+  "each violation should show severity level (critical, serious, moderate)",
+  async function ({ page }) {
+    expect(true).toBe(true);
   },
 );
 
 Then(
   "each violation should link to WCAG guidelines",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
+  async function ({ page }) {
+    expect(true).toBe(true);
   },
 );
 
 Then(
   "the developer should be able to fix the issues before committing",
-  async function (_world: BuildComputerWorld) {
-    vitestExpect(true).toBe(true);
+  async function ({ page }) {
+    expect(true).toBe(true);
   },
 );

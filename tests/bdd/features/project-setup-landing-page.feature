@@ -50,7 +50,7 @@ Feature: Project Setup and Landing Page
   @unit
   Scenario: Running Unit Tests with Vitest
     Given the project has Vitest configured
-    And unit tests exist in the tests/unit/ directory
+    And unit tests exist in the unit test directory
     When the developer runs "pnpm test:unit"
     Then Vitest should execute all unit tests
     And test results should be displayed in the terminal
@@ -60,7 +60,7 @@ Feature: Project Setup and Landing Page
   @component
   Scenario: Component Testing in Storybook
     Given Storybook is configured with Vitest addon
-    And component stories exist in the stories/ directory
+    And component stories exist in the stories directory
     When the developer runs "pnpm storybook"
     Then Storybook should start on port 6006
     And all component stories should be visible in the sidebar
@@ -70,28 +70,28 @@ Feature: Project Setup and Landing Page
   @e2e
   Scenario: End-to-End Tests with Playwright
     Given Playwright is configured for E2E testing
-    And E2E tests exist in the tests/e2e/ directory
+    And E2E tests exist in the E2E test directory
     When the developer runs "pnpm test:e2e"
     Then Playwright should launch Chromium browser in headless mode
     And all E2E tests should execute against the dev server
-    And test results should show pass/fail status
+    And test results should show pass or fail status
     And screenshots should be captured for any failures
 
   @bdd
   Scenario: BDD Acceptance Tests with QuickPickle
     Given QuickPickle is configured with Gherkin syntax support
-    And .feature files exist in the tests/bdd/features/ directory
+    And .feature files exist in the BDD features directory
     When the developer runs "pnpm test:bdd"
     Then QuickPickle should parse all .feature files
     And step definitions should be matched to Gherkin steps
     And tests should execute in Vitest runner
-    And results should show which scenarios passed/failed
+    And results should show which scenarios passed or failed
 
   Scenario: Production Build Generates Optimized Output
     Given the project is ready for deployment
     When the developer runs "pnpm build"
     Then Vite should bundle the application
-    And output should be written to the dist/ directory
+    And output should be written to the dist directory
     And JavaScript bundles should be minified and tree-shaken
     And CSS should be extracted and optimized
     And the build should complete successfully with size report
@@ -104,7 +104,7 @@ Feature: Project Setup and Landing Page
   @ui @desktop
   Scenario: Desktop User Views Landing Page
     Given the landing page is deployed and accessible
-    When a user visits the URL on a desktop browser (1920x1080)
+    When a user visits the URL on a desktop browser at 1920x1080
     Then the page should load and display First Contentful Paint within 1.5 seconds
     And the hero section should display "BuildComputer" title prominently
     And the tagline should be visible below the title
@@ -116,10 +116,10 @@ Feature: Project Setup and Landing Page
   @ui @mobile
   Scenario: Mobile User Views Landing Page
     Given the landing page is deployed and accessible
-    When a user visits the URL on a mobile device (375x667)
+    When a user visits the URL on a mobile device at 375x667
     Then the viewport meta tag should ensure proper scaling
     And the layout should adapt to mobile screen size
-    And the hero title should be smaller but readable (responsive typography)
+    And the hero title should be smaller but readable with responsive typography
     And the "Get Started" button should be at least 44x44px for touch
     And all content should fit within the viewport without horizontal scrolling
     And the navigation should collapse or adapt for mobile

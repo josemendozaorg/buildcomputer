@@ -126,20 +126,34 @@ describe("retry utility", () => {
       const fn = vi.fn().mockRejectedValue(error);
 
       const promise = retryWithBackoff(fn, { maxAttempts: 3 });
+
+      // Add catch handler immediately to prevent unhandled rejection warnings
+      const catchHandler = promise.catch((err) => err);
+
       await vi.runAllTimersAsync();
 
       await expect(promise).rejects.toThrow("All attempts failed");
       expect(fn).toHaveBeenCalledTimes(3);
+
+      // Ensure catch handler is resolved
+      await catchHandler;
     });
 
     it("should respect maxAttempts option", async () => {
       const fn = vi.fn().mockRejectedValue(new Error("Failed"));
 
       const promise = retryWithBackoff(fn, { maxAttempts: 2 });
+
+      // Add catch handler immediately to prevent unhandled rejection warnings
+      const catchHandler = promise.catch((err) => err);
+
       await vi.runAllTimersAsync();
 
       await expect(promise).rejects.toThrow();
       expect(fn).toHaveBeenCalledTimes(2);
+
+      // Ensure catch handler is resolved
+      await catchHandler;
     });
 
     it("should use baseDelay option", async () => {

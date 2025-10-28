@@ -1,35 +1,24 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import { quickpickle } from "quickpickle";
 
 export default defineConfig({
-  plugins: [
-    react(),
-    quickpickle({
-      worldConfig: {
-        host: "http://localhost:5173",
-        headless: true,
-        defaultBrowser: "chromium",
-        defaultBrowserSize: "desktop",
-        stepTimeout: 10000,
-      },
-    }),
-  ],
+  plugins: [react()],
   test: {
     // Vitest configuration
     globals: true,
     environment: "jsdom",
-    // Include feature files as test files
-    include: [
-      "tests/bdd/features/**/*.feature",
-      "**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+    // Include only unit test files
+    include: ["**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    // Exclude E2E and BDD tests (run separately with Playwright)
+    exclude: [
+      "node_modules/**",
+      "dist/**",
+      "tests/e2e/**",
+      "tests/bdd/**",
+      ".features-gen/**",
     ],
-    // Setup files with step definitions and test utilities
-    setupFiles: [
-      "./tests/setup.ts",
-      "./tests/bdd/steps/project-setup-landing-page.steps.ts",
-      "./tests/bdd/steps/persona-based-builder.steps.ts",
-    ],
+    // Setup files for unit tests
+    setupFiles: ["./tests/setup.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
