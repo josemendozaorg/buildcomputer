@@ -71,8 +71,9 @@ Then("AI should ask first question about use case", async function ({ page }) {
 
 Then("quick-reply chips should be visible", async function ({ page }) {
   // Verify quick-reply chips for use case options
-  const gamingChip = page.getByRole("button", { name: /^Gaming$/i });
-  const workChip = page.getByRole("button", { name: /^Work$/i });
+  // Note: aria-labels are "Quick reply: Gaming" etc, so we match the chip text
+  const gamingChip = page.getByRole("button", { name: /Gaming/i });
+  const workChip = page.getByRole("button", { name: /Work/i });
   const contentCreationChip = page.getByRole("button", {
     name: /Content Creation/i,
   });
