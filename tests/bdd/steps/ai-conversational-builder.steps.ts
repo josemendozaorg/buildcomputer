@@ -182,7 +182,7 @@ Given("user is in the middle of AI conversation", async function ({ page }) {
   await expect(chatRegion).toBeVisible();
 
   // Send a message to simulate being in the middle of conversation
-  const input = page.getByPlaceholderText(/Type your message/i);
+  const input = page.getByPlaceholder(/Type your message/i);
   await input.fill("I want to build a gaming PC");
   const sendButton = page.getByRole("button", { name: /Send/i });
   await sendButton.click();
@@ -259,7 +259,7 @@ When(
   'AI determines user matches "Competitive Gamer" persona',
   async function ({ page }) {
     // Send a message that will trigger competitive gamer persona detection
-    const input = page.getByPlaceholderText(/Type your message/i);
+    const input = page.getByPlaceholder(/Type your message/i);
     await input.fill("I play Valorant competitively and need high FPS");
     const sendButton = page.getByRole("button", { name: /Send/i });
     await sendButton.click();
@@ -414,7 +414,7 @@ Given(
     await expect(chatRegion).toBeVisible();
 
     // Send the message (this will be message 2 - after the AI's initial greeting)
-    const input = page.getByPlaceholderText(/Type your message/i);
+    const input = page.getByPlaceholder(/Type your message/i);
     await input.fill("I play Valorant competitively");
     const sendButton = page.getByRole("button", { name: /Send/i });
     await sendButton.click();
@@ -491,7 +491,7 @@ Given("user is halfway through AI conversation", async function ({ page }) {
   await expect(chatRegion).toBeVisible();
 
   // Send first message (use case)
-  const input = page.getByPlaceholderText(/Type your message/i);
+  const input = page.getByPlaceholder(/Type your message/i);
   await input.fill("Gaming");
   const sendButton = page.getByRole("button", { name: /Send/i });
   await sendButton.click();
@@ -570,7 +570,7 @@ Given(
     // Message 1 (AI): Initial greeting
     // Message 2 (AI): "What will you mainly use it for?"
     // Message 3 (User): "Gaming"
-    const input = page.getByPlaceholderText(/Type your message/i);
+    const input = page.getByPlaceholder(/Type your message/i);
     await input.fill("Gaming");
     const sendButton = page.getByRole("button", { name: /Send/i });
     await sendButton.click();
@@ -1074,7 +1074,7 @@ Given("user is in AI conversation", async function ({ page }) {
 
 When('user types vague response: "something good"', async function ({ page }) {
   // Type vague response in chat input
-  const input = page.getByPlaceholderText(/Type your message/i);
+  const input = page.getByPlaceholder(/Type your message/i);
   await input.fill("something good");
   const sendButton = page.getByRole("button", { name: /Send/i });
   await sendButton.click();
@@ -1119,7 +1119,7 @@ Given(
     await talkButton.click();
 
     // Progress through conversation to budget step (step 3)
-    const input = page.getByPlaceholderText(/Type your message/i);
+    const input = page.getByPlaceholder(/Type your message/i);
 
     // Step 1: Use case
     await input.fill("Gaming");
@@ -1181,7 +1181,7 @@ When("mock AI service simulates error", async function ({ page }) {
   });
 
   // Send a message to trigger the error
-  const input = page.getByPlaceholderText(/Type your message/i);
+  const input = page.getByPlaceholder(/Type your message/i);
   await input.fill("gaming PC");
   const sendButton = page.getByRole("button", { name: /Send/i });
   await sendButton.click();
