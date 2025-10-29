@@ -761,12 +761,15 @@ When("returns to builder page", async function ({ page }) {
   const url = this.devServerUrl || "http://localhost:5173";
   await page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
 
-  // Re-open the chat
-  const talkButton = page.getByRole("button", {
-    name: /Talk to AI Builder/i,
-  });
-  await expect(talkButton).toBeVisible();
-  await talkButton.click();
+  // Wait for state restoration from localStorage
+  await page.waitForTimeout(500);
+
+  // Re-open the chat - look for either "Talk to AI Builder" or "Return to Conversation"
+  const talkButton = page.locator(
+    'button:has-text("Talk to AI Builder"), button:has-text("Return to Conversation")',
+  );
+  await expect(talkButton.first()).toBeVisible({ timeout: 5000 });
+  await talkButton.first().click();
 
   // Wait for chat to appear
   const chatRegion = page.getByRole("region", { name: /AI Chat/i });

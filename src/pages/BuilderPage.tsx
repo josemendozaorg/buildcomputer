@@ -7,7 +7,7 @@
  * - View build recommendations
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -15,6 +15,15 @@ import PersonaSelector from "../components/PersonaSelector";
 import BudgetSlider from "../components/BudgetSlider";
 import BuildRecommendations from "../components/BuildRecommendations";
 import ChatInterface, { Message } from "../components/ChatInterface";
+
+const CONVERSATION_STATE_KEY = "ai-builder-conversation-state";
+
+interface ConversationState {
+  messages: Message[];
+  selectedPersonaId: string | null;
+  budget: number;
+  hasSavedConversation: boolean;
+}
 
 export default function BuilderPage() {
   const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(
@@ -24,6 +33,53 @@ export default function BuilderPage() {
   const [showAIChat, setShowAIChat] = useState(false);
   const [hasSavedConversation, setHasSavedConversation] = useState(false);
   const [savedMessages, setSavedMessages] = useState<Message[]>([]);
+  const [isStateRestored, setIsStateRestored] = useState(false);
+
+  // Restore conversation state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem(CONVERSATION_STATE_KEY);
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState) as ConversationState;
+        // Restore messages with Date objects reconstructed from ISO strings
+        const restoredMessages: Message[] = state.messages.map((msg) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp as unknown as string),
+        }));
+        setSavedMessages(restoredMessages);
+        setSelectedPersonaId(state.selectedPersonaId);
+        setBudget(state.budget);
+        setHasSavedConversation(state.hasSavedConversation);
+        setIsStateRestored(true);
+      } catch (error) {
+        console.error("Failed to restore conversation state:", error);
+      }
+    }
+  }, []);
+
+  // Save conversation state to localStorage whenever it changes
+  useEffect(() => {
+    // Don't save until we've attempted to restore (prevents overwriting saved state on mount)
+    if (!isStateRestored && savedMessages.length === 0) {
+      return;
+    }
+
+    if (hasSavedConversation || savedMessages.length > 0) {
+      const state: ConversationState = {
+        messages: savedMessages,
+        selectedPersonaId,
+        budget,
+        hasSavedConversation,
+      };
+      localStorage.setItem(CONVERSATION_STATE_KEY, JSON.stringify(state));
+    }
+  }, [
+    savedMessages,
+    selectedPersonaId,
+    budget,
+    hasSavedConversation,
+    isStateRestored,
+  ]);
 
   const handlePersonaSelect = (id: string) => {
     setSelectedPersonaId(id);
