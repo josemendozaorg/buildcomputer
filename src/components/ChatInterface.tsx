@@ -715,6 +715,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                   onKeyDown={(e) => handleChipKeyDown(e, handleAcceptPersona)}
                   className="px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-full text-sm font-semibold hover:from-green-700 hover:to-teal-700 transition-all shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                   aria-label={`Accept persona suggestion: ${personaSuggestion.acceptLabel}`}
+                  data-testid="accept-persona-suggestion"
                 >
                   {personaSuggestion.acceptLabel}
                 </button>
@@ -723,6 +724,7 @@ const ChatInterface = forwardRef<ChatInterfaceRef, ChatInterfaceProps>(
                   onKeyDown={(e) => handleChipKeyDown(e, handleDeclinePersona)}
                   className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                   aria-label={`Decline persona suggestion: ${personaSuggestion.declineLabel}`}
+                  data-testid="decline-persona-suggestion"
                 >
                   {personaSuggestion.declineLabel}
                 </button>
