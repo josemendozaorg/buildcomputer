@@ -26,6 +26,13 @@ Given("user is on desktop viewport (≥1024px width)", async function ({ page })
 });
 
 When("user starts AI conversation", async function ({ page }) {
+  // Ensure we're on the builder page
+  const currentUrl = page.url();
+  if (!currentUrl.includes("/build")) {
+    await page.goto("/build");
+    await page.waitForLoadState("domcontentloaded");
+  }
+
   await page.click('button:has-text("Talk to AI Builder")');
   await page.waitForTimeout(500); // Wait for layout to render
 });
