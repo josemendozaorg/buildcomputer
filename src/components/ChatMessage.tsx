@@ -45,8 +45,9 @@ const ChatMessage = memo(({ message }: ChatMessageProps) => {
             ? "error-message"
             : message.isWarning
               ? "compatibility-warning"
-              : undefined
+              : "chat-message"
         }
+        data-sender={message.role === "user" ? "user" : "assistant"}
       >
         {message.isError && (
           <div className="flex items-start gap-2 mb-2">
