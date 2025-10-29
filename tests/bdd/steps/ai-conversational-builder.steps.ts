@@ -464,26 +464,87 @@ Then("conversation flow should remain coherent", async function ({ page }) {
 When(
   "user types free-form responses to all questions",
   async function ({ page }) {
-    throw new NotImplementedError(
-      "user types free-form responses to all questions",
-    );
+    // Simulate a full text-based conversation
+    const responses = [
+      "I want to build a gaming PC",
+      "I play competitive FPS games like CS:GO and Valorant",
+      "My budget is around $1500",
+    ];
+
+    for (const response of responses) {
+      await page.waitForTimeout(500);
+      const input = page.locator('input[placeholder="Type your message..."]');
+      await input.fill(response);
+      await page.click('button:has-text("Send")');
+      await page.waitForTimeout(1000); // Wait for AI response
+    }
   },
 );
 
 Then("AI should parse responses intelligently", async function ({ page }) {
-  throw new NotImplementedError("AI should parse responses intelligently");
+  // Verify AI generated responses after text input
+  const messages = page.locator('[data-testid="chat-message"]');
+  const messageCount = await messages.count();
+
+  // Should have at least 6 messages (3 user + 3 AI minimum)
+  expect(messageCount).toBeGreaterThanOrEqual(6);
+
+  // Verify AI messages exist
+  const aiMessages = page.locator(
+    '[data-testid="chat-message"][data-sender="assistant"]',
+  );
+  const aiCount = await aiMessages.count();
+  expect(aiCount).toBeGreaterThanOrEqual(3);
 });
 
 Then("extract use case, budget, and preferences", async function ({ page }) {
-  throw new NotImplementedError("extract use case, budget, and preferences");
+  // Verify AI extracted key information from conversation
+  // This is validated by checking if AI moved forward with build generation
+  await page.waitForTimeout(500);
+
+  // Check if persona suggestion or build recommendations appeared
+  const personaSuggestion = page.locator(
+    'button:has-text("Yes, show me builds")',
+  );
+  const buildCards = page.locator('[data-testid="build-card"]');
+
+  const hasPersonaSuggestion = (await personaSuggestion.count()) > 0;
+  const hasBuildCards = (await buildCards.count()) > 0;
+
+  // At least one should be present, indicating AI understood the conversation
+  expect(hasPersonaSuggestion || hasBuildCards).toBe(true);
 });
 
 Then("ask clarifying questions when needed", async function ({ page }) {
-  throw new NotImplementedError("ask clarifying questions when needed");
+  // Verify AI asked follow-up questions during conversation
+  // This is validated by checking message content contains question marks
+  const aiMessages = page.locator(
+    '[data-testid="chat-message"][data-sender="assistant"]',
+  );
+  const count = await aiMessages.count();
+
+  // At least one AI message should be a question
+  let hasQuestion = false;
+  for (let i = 0; i < count; i++) {
+    const text = await aiMessages.nth(i).textContent();
+    if (text && text.includes("?")) {
+      hasQuestion = true;
+      break;
+    }
+  }
+
+  expect(hasQuestion).toBe(true);
 });
 
 Then("complete conversation in 6-10 messages", async function ({ page }) {
-  throw new NotImplementedError("complete conversation in 6-10 messages");
+  // Verify conversation completed with reasonable message count
+  const messageCount = await page
+    .locator('[data-testid="chat-message"]')
+    .count();
+
+  // Text-based conversations may be slightly longer than chip-based
+  expect(messageCount).toBeGreaterThanOrEqual(6);
+  expect(messageCount).toBeLessThanOrEqual(10);
 });
 
 Given(
