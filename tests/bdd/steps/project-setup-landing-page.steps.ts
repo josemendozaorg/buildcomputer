@@ -86,17 +86,20 @@ Then(
   },
 );
 
-Then("the terminal should display {string}", async function ({ page }) {
-  // Check that the dev server output contains the expected text
-  expect(
-    this.devServerOutput,
-    "Dev server output should be captured",
-  ).toBeTruthy();
-  expect(
-    this.devServerOutput?.includes(text),
-    `Terminal output should contain "${text}"`,
-  ).toBe(true);
-});
+Then(
+  "the terminal should display {string}",
+  async function ({ page }, text: string) {
+    // Check that the dev server output contains the expected text
+    expect(
+      this.devServerOutput,
+      "Dev server output should be captured",
+    ).toBeTruthy();
+    expect(
+      this.devServerOutput?.includes(text),
+      `Terminal output should contain "${text}"`,
+    ).toBe(true);
+  },
+);
 
 Then(
   "hot module replacement (HMR) should be enabled",
@@ -267,7 +270,7 @@ Given(
   },
 );
 
-When("the developer runs {string}", async function ({ page }) {
+When("the developer runs {string}", async function ({ page }, command: string) {
   // Store command for various scenarios (git commit, test run, etc.)
   // Determine context based on command
   if (command.includes("commit")) {
@@ -375,12 +378,15 @@ Given(
   },
 );
 
-Then("Storybook should start on port {int}", async function ({ page }) {
-  // Verify storybook config exists
-  const projectRoot = process.cwd();
-  const packageJsonPath = join(projectRoot, "package.json");
-  expect(existsSync(packageJsonPath)).toBe(true);
-});
+Then(
+  "Storybook should start on port {int}",
+  async function ({ page }, port: number) {
+    // Verify storybook config exists
+    const projectRoot = process.cwd();
+    const packageJsonPath = join(projectRoot, "package.json");
+    expect(existsSync(packageJsonPath)).toBe(true);
+  },
+);
 
 Then(
   "all component stories should be visible in the sidebar",
@@ -553,10 +559,13 @@ Then(
   },
 );
 
-Then("bundle size should be under {int}KB gzipped", async function ({ page }) {
-  // Size check would happen after actual build
-  expect(size).toBeGreaterThan(0);
-});
+Then(
+  "bundle size should be under {int}KB gzipped",
+  async function ({ page }, size: number) {
+    // Size check would happen after actual build
+    expect(size).toBeGreaterThan(0);
+  },
+);
 
 Given("the landing page is deployed and accessible", async function ({ page }) {
   // Verify dev server is running on localhost:5173
@@ -825,14 +834,17 @@ Given("the user is viewing the landing page", async function ({ page }) {
   await expect(header).toBeVisible();
 });
 
-When("the user hovers over the {string} button", async function ({ page }) {
-  // Find button and hover over it
-  const button = page.getByRole("button", { name: buttonText });
-  await button.hover();
+When(
+  "the user hovers over the {string} button",
+  async function ({ page }, buttonText: string) {
+    // Find button and hover over it
+    const button = page.getByRole("button", { name: buttonText });
+    await button.hover();
 
-  // Store reference for later steps
-  this.hoveredButton = button;
-});
+    // Store reference for later steps
+    this.hoveredButton = button;
+  },
+);
 
 Then(
   "the button should display a hover state (color change, slight scale)",
@@ -961,24 +973,27 @@ Then(
   },
 );
 
-Then("the {string} button should be reachable", async function ({ page }) {
-  // Tab until we find the button (max 10 attempts)
-  let foundButton = false;
-  for (let i = 0; i < 10; i++) {
-    const focusedText = await page.evaluate(() => {
-      return document.activeElement?.textContent?.trim();
-    });
+Then(
+  "the {string} button should be reachable",
+  async function ({ page }, buttonText: string) {
+    // Tab until we find the button (max 10 attempts)
+    let foundButton = false;
+    for (let i = 0; i < 10; i++) {
+      const focusedText = await page.evaluate(() => {
+        return document.activeElement?.textContent?.trim();
+      });
 
-    if (focusedText === buttonText) {
-      foundButton = true;
-      break;
+      if (focusedText === buttonText) {
+        foundButton = true;
+        break;
+      }
+
+      await page.keyboard.press("Tab");
     }
 
-    await page.keyboard.press("Tab");
-  }
-
-  expect(foundButton).toBe(true);
-});
+    expect(foundButton).toBe(true);
+  },
+);
 
 When("the user presses Enter on the focused button", async function ({ page }) {
   // Press Enter key to activate the focused button
@@ -1265,7 +1280,7 @@ Given("the developer has written failing tests", async function ({ page }) {
 
 When(
   "the developer runs {string} before deployment",
-  async function ({ page }) {
+  async function ({ page }, command: string) {
     this.testCommand = command;
   },
 );
