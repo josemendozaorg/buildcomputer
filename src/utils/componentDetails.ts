@@ -61,6 +61,27 @@ export const componentDetailsData: Record<string, ComponentDetails> = {
       },
     },
   },
+  "NVIDIA GeForce RTX 4070 SUPER": {
+    description:
+      "Enhanced mid-to-high-end GPU with 12GB GDDR6X memory. Improved 1440p and 4K gaming performance over standard RTX 4070.",
+    whenToChoose:
+      "Ideal for high-refresh 1440p gaming or smooth 4K gaming at 60+ fps. Better value than RTX 4080 for most gamers.",
+    performanceTier: "High Mid-Range",
+    advancedSpecs: {
+      clockSpeed: "1980 MHz",
+      boostClock: "2475 MHz",
+      tdp: "220W",
+      architecture: "Ada Lovelace (TSMC 4N)",
+      cores: "7,168 CUDA cores",
+      memoryType: "12GB GDDR6X",
+      memorySpeed: "21 Gbps",
+      other: {
+        "Memory Bus": "192-bit",
+        "RT Cores": "56 (3rd gen)",
+        "Tensor Cores": "224 (4th gen)",
+      },
+    },
+  },
   "NVIDIA GeForce RTX 4060": {
     description:
       "Mid-range GPU with 8GB GDDR6 memory. Solid 1080p and entry-level 1440p gaming.",
@@ -112,6 +133,27 @@ export const componentDetailsData: Record<string, ComponentDetails> = {
       cores: "8 cores",
       threads: "16 threads",
       cache: "96MB total (32MB L3 + 64MB 3D V-Cache)",
+      other: {
+        Socket: "AM5",
+        "PCIe Support": "PCIe 5.0",
+        "Memory Support": "DDR5-5200",
+      },
+    },
+  },
+  "AMD Ryzen 7 7700X": {
+    description:
+      "8-core mainstream CPU with excellent gaming and productivity performance. Great all-rounder for gaming builds.",
+    whenToChoose:
+      "Perfect for gamers who want strong performance without the premium price of the 7800X3D. Excellent for streaming.",
+    performanceTier: "Upper Mid-Range",
+    advancedSpecs: {
+      clockSpeed: "4.5 GHz base",
+      boostClock: "5.4 GHz max",
+      tdp: "105W",
+      architecture: "Zen 4 (TSMC 5nm)",
+      cores: "8 cores",
+      threads: "16 threads",
+      cache: "32MB L3 cache",
       other: {
         Socket: "AM5",
         "PCIe Support": "PCIe 5.0",

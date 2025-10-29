@@ -47,42 +47,51 @@ Given(
   },
 );
 
-Given("the user is on the {string} page", async function ({ page }) {
-  // Navigate to specific route
-  const baseUrl =
-    this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
-  const url = `${baseUrl}${route}`;
-  await page.goto(url, { waitUntil: "domcontentloaded" });
+Given(
+  "the user is on the {string} page",
+  async function ({ page }, route: string) {
+    // Navigate to specific route
+    const baseUrl =
+      this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
+    const url = `${baseUrl}${route}`;
+    await page.goto(url, { waitUntil: "domcontentloaded" });
 
-  // Verify navigation succeeded by checking URL
-  await expect(page).toHaveURL(url);
-});
+    // Verify navigation succeeded by checking URL
+    await expect(page).toHaveURL(url);
+  },
+);
 
-When("the user clicks the {string} button", async function ({ page }) {
-  // Find button or link by text and click it
-  // First try to find as button, if not found try as link (for Link components styled as buttons)
-  let element = page.getByRole("button", { name: buttonText });
-  const count = await element.count();
+When(
+  "the user clicks the {string} button",
+  async function ({ page }, buttonText: string) {
+    // Find button or link by text and click it
+    // First try to find as button, if not found try as link (for Link components styled as buttons)
+    let element = page.getByRole("button", { name: buttonText });
+    const count = await element.count();
 
-  if (count === 0) {
-    // Try as link (React Router Link components)
-    element = page.getByRole("link", { name: buttonText });
-  }
+    if (count === 0) {
+      // Try as link (React Router Link components)
+      element = page.getByRole("link", { name: buttonText });
+    }
 
-  await element.click();
-});
+    await element.click();
+  },
+);
 
-Then("the browser navigates to the {string} route", async function ({ page }) {
-  // Verify URL contains the expected route
-  const baseUrl =
-    this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
-  const expectedUrl = `${baseUrl}${route}`;
-  await expect(page).toHaveURL(expectedUrl);
-});
+Then(
+  "the browser navigates to the {string} route",
+  async function ({ page }, route: string) {
+    // Verify URL contains the expected route
+    const baseUrl =
+      this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
+    const expectedUrl = `${baseUrl}${route}`;
+    await expect(page).toHaveURL(expectedUrl);
+  },
+);
 
 When(
   "the user types {string} in the browser address bar",
-  async function ({ page }) {
+  async function ({ page }, url: string) {
     // Navigate directly to the URL
     const baseUrl =
       this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
@@ -110,30 +119,36 @@ Then("the persona selection interface is displayed", async function ({ page }) {
   await expect(grid).toBeVisible();
 });
 
-Then("{int} persona cards are visible", async function ({ page }) {
-  // Find all persona cards (buttons containing persona titles)
-  const cards = page.locator("button:has(h3)");
+Then(
+  "{int} persona cards are visible",
+  async function ({ page }, count: number) {
+    // Find all persona cards (buttons containing persona titles)
+    const cards = page.locator("button:has(h3)");
 
-  // Verify the count matches expected
-  await expect(cards).toHaveCount(count);
+    // Verify the count matches expected
+    await expect(cards).toHaveCount(count);
 
-  // Verify all cards are visible
-  const cardCount = await cards.count();
-  for (let i = 0; i < cardCount; i++) {
-    await expect(cards.nth(i)).toBeVisible();
-  }
-});
+    // Verify all cards are visible
+    const cardCount = await cards.count();
+    for (let i = 0; i < cardCount; i++) {
+      await expect(cards.nth(i)).toBeVisible();
+    }
+  },
+);
 
-When("the user clicks the {string} persona card", async function ({ page }) {
-  // Find persona card by its title and click it
-  const card = page.getByRole("button", {
-    name: new RegExp(personaName, "i"),
-  });
-  await card.click();
+When(
+  "the user clicks the {string} persona card",
+  async function ({ page }, personaName: string) {
+    // Find persona card by its title and click it
+    const card = page.getByRole("button", {
+      name: new RegExp(personaName, "i"),
+    });
+    await card.click();
 
-  // Store selected persona for later steps
-  this.selectedPersona = personaName;
-});
+    // Store selected persona for later steps
+    this.selectedPersona = personaName;
+  },
+);
 
 Then(
   "the persona card is visually highlighted with an indigo border",
@@ -149,19 +164,22 @@ Then(
   },
 );
 
-Given("the user has selected the {string} persona", async function ({ page }) {
-  // Navigate to the builder page
-  const url =
-    this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
-  await page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
+Given(
+  "the user has selected the {string} persona",
+  async function ({ page }, personaName: string) {
+    // Navigate to the builder page
+    const url =
+      this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
+    await page.goto(`${url}/build`, { waitUntil: "domcontentloaded" });
 
-  // Click the persona card
-  const card = page.getByRole("button", {
-    name: new RegExp(personaName, "i"),
-  });
-  await card.click();
-  this.selectedPersona = personaName;
-});
+    // Click the persona card
+    const card = page.getByRole("button", {
+      name: new RegExp(personaName, "i"),
+    });
+    await card.click();
+    this.selectedPersona = personaName;
+  },
+);
 
 Given(
   "the user has selected {string} with budget ${int}",
@@ -186,47 +204,65 @@ Given(
   },
 );
 
-Then("the {string} card is deselected", async function ({ page }) {
-  // Verify the card no longer has the selected border
-  const card = page.getByRole("button", {
-    name: new RegExp(personaName, "i"),
-  });
-  await expect(card).not.toHaveClass(/border-indigo-600/);
-});
+Then(
+  "the {string} card is deselected",
+  async function ({ page }, personaName: string) {
+    // Verify the card no longer has the selected border
+    const card = page.getByRole("button", {
+      name: new RegExp(personaName, "i"),
+    });
+    await expect(card).not.toHaveClass(/border-indigo-600/);
+  },
+);
 
-Then("the {string} card is highlighted", async function ({ page }) {
-  // Verify the card has the selected border
-  const card = page.getByRole("button", {
-    name: new RegExp(personaName, "i"),
-  });
-  await expect(card).toHaveClass(/border-indigo-600/);
-});
+Then(
+  "the {string} card is highlighted",
+  async function ({ page }, personaName: string) {
+    // Verify the card has the selected border
+    const card = page.getByRole("button", {
+      name: new RegExp(personaName, "i"),
+    });
+    await expect(card).toHaveClass(/border-indigo-600/);
+  },
+);
 
-Given("the user is viewing the {int} persona cards", async function ({ page }) {
-  // Verify the correct number of persona cards are visible
-  const cards = page.locator("button:has(h3)");
-  await expect(cards).toHaveCount(count);
-});
+Given(
+  "the user is viewing the {int} persona cards",
+  async function ({ page }, count: number) {
+    // Verify the correct number of persona cards are visible
+    const cards = page.locator("button:has(h3)");
+    await expect(cards).toHaveCount(count);
+  },
+);
 
-When("the user looks at the {string} card", async function ({ page }) {
-  // Find and scroll to the specified card
-  const card = page.getByRole("button", {
-    name: new RegExp(cardName, "i"),
-  });
-  await card.scrollIntoViewIfNeeded();
-  await expect(card).toBeVisible();
-});
+When(
+  "the user looks at the {string} card",
+  async function ({ page }, cardName: string) {
+    // Find and scroll to the specified card
+    const card = page.getByRole("button", {
+      name: new RegExp(cardName, "i"),
+    });
+    await card.scrollIntoViewIfNeeded();
+    await expect(card).toBeVisible();
+  },
+);
 
-Then("the card displays a {string} badge", async function ({ page }) {
-  // Verify the badge is visible on the Custom Build card
-  const badge = page.locator(`text="${badgeText}"`);
-  await expect(badge).toBeVisible();
-});
+Then(
+  "the card displays a {string} badge",
+  async function ({ page }, badgeText: string) {
+    // Verify the badge is visible on the Custom Build card
+    const badge = page.locator(`text="${badgeText}"`);
+    await expect(badge).toBeVisible();
+  },
+);
 
-Then("clicking it shows a tooltip saying {string}", async function ({ page }) {
-  // For now, skip tooltip implementation - we can add this later
-  // The badge itself is the key requirement
-});
+Then(
+  "clicking it shows a tooltip saying {string}",
+  async function ({ page }, tooltipText: string) {
+    // For now, skip tooltip implementation - we can add this later
+    // The badge itself is the key requirement
+  },
+);
 
 // ============================================================================
 // Budget Slider Steps
@@ -243,7 +279,7 @@ Then(
 
 Then(
   "the slider is set to a default value of ${int}",
-  async function ({ page }) {
+  async function ({ page }, defaultValue: number) {
     // Find the slider and verify its value
     const slider = page.locator('input[type="range"]');
     const value = await slider.getAttribute("value");
@@ -257,30 +293,36 @@ Given("the budget slider is visible", async function ({ page }) {
   await expect(slider).toBeVisible();
 });
 
-When("the user drags the slider to ${int}", async function ({ page }) {
-  // Find the budget slider and change its value using Playwright's fill method
-  const slider = page.locator('input[type="range"]');
+When(
+  "the user drags the slider to ${int}",
+  async function ({ page }, value: number) {
+    // Find the budget slider and change its value using Playwright's fill method
+    const slider = page.locator('input[type="range"]');
 
-  // Playwright's fill() should work for range inputs
-  await slider.fill(value.toString());
+    // Playwright's fill() should work for range inputs
+    await slider.fill(value.toString());
 
-  // Give React a moment to update the DOM
-  await page.waitForTimeout(100);
+    // Give React a moment to update the DOM
+    await page.waitForTimeout(100);
 
-  this.budgetValue = value;
-});
+    this.budgetValue = value;
+  },
+);
 
-When("the user sets the budget slider to ${int}", async function ({ page }) {
-  // Set the budget slider value
-  const slider = page.locator('input[type="range"]');
-  await slider.fill(value.toString());
-  await page.waitForTimeout(200);
-  this.budgetValue = value;
-});
+When(
+  "the user sets the budget slider to ${int}",
+  async function ({ page }, value: number) {
+    // Set the budget slider value
+    const slider = page.locator('input[type="range"]');
+    await slider.fill(value.toString());
+    await page.waitForTimeout(200);
+    this.budgetValue = value;
+  },
+);
 
 Then(
   "the budget value display updates to show {string}",
-  async function ({ page }) {
+  async function ({ page }, displayValue: string) {
     // Verify the budget display shows the correct value
     // Account for Intl.NumberFormat adding commas (e.g., "$2,000" instead of "$2000")
     const formattedValue = displayValue.replace(/\$(\d+)/, (match, p1) => {
@@ -497,10 +539,13 @@ Then("the budget slider is not visible yet", async function ({ page }) {
   await expect(slider).not.toBeVisible();
 });
 
-Then("an empty state message says {string}", async function ({ page }) {
-  // For now, skip this - we'll add empty state in a future iteration
-  // This is acceptable since the main functionality (no selection, no slider) is verified
-});
+Then(
+  "an empty state message says {string}",
+  async function ({ page }, message: string) {
+    // For now, skip this - we'll add empty state in a future iteration
+    // This is acceptable since the main functionality (no selection, no slider) is verified
+  },
+);
 
 // ============================================================================
 // Build Details Steps
@@ -508,7 +553,7 @@ Then("an empty state message says {string}", async function ({ page }) {
 
 Given(
   "the user is viewing {int} build recommendation cards",
-  async function ({ page }) {
+  async function ({ page }, count: number) {
     // Navigate to the builder page
     const url =
       this.devServerUrl || this.worldConfig?.host || "http://localhost:5173";
@@ -615,12 +660,15 @@ Then("a yellow warning banner appears", async function ({ page }) {
   await expect(buildCards.first()).toBeVisible();
 });
 
-Then("the warning states {string}", async function ({ page }) {
-  // Skipping warning text verification for MVP
-  // This feature will be implemented in a future iteration
-  const buildCards = page.locator('[data-testid="build-card"]');
-  await expect(buildCards).toHaveCount(3);
-});
+Then(
+  "the warning states {string}",
+  async function ({ page }, warningText: string) {
+    // Skipping warning text verification for MVP
+    // This feature will be implemented in a future iteration
+    const buildCards = page.locator('[data-testid="build-card"]');
+    await expect(buildCards).toHaveCount(3);
+  },
+);
 
 // ============================================================================
 // Keyboard Navigation Steps
@@ -781,10 +829,13 @@ Then("the cursor changes to pointer", async function ({ page }) {
 // Responsive Layout Steps
 // ============================================================================
 
-When("the viewport width is less than {int}px", async function ({ page }) {
-  // Set viewport to mobile size (e.g., 375px for < 640px)
-  await page.setViewportSize({ width: width - 100, height: 800 });
-});
+When(
+  "the viewport width is less than {int}px",
+  async function ({ page }, width: number) {
+    // Set viewport to mobile size (e.g., 375px for < 640px)
+    await page.setViewportSize({ width: width - 100, height: 800 });
+  },
+);
 
 When(
   "the viewport width is between {int}px and {int}px",
@@ -795,10 +846,13 @@ When(
   },
 );
 
-When("the viewport width is greater than {int}px", async function ({ page }) {
-  // Set viewport to desktop size (e.g., 1280px for > 1024px)
-  await page.setViewportSize({ width: width + 200, height: 800 });
-});
+When(
+  "the viewport width is greater than {int}px",
+  async function ({ page }, width: number) {
+    // Set viewport to desktop size (e.g., 1280px for > 1024px)
+    await page.setViewportSize({ width: width + 200, height: 800 });
+  },
+);
 
 Then(
   "persona cards are displayed in {int} column at full width",
@@ -809,12 +863,15 @@ Then(
   },
 );
 
-Then("persona cards are displayed in {int} columns", async function ({ page }) {
-  // Verify grid has the appropriate columns class
-  const grid = page.locator(".grid");
-  const classPattern = new RegExp(`grid-cols-${columns}`);
-  await expect(grid).toHaveClass(classPattern);
-});
+Then(
+  "persona cards are displayed in {int} columns",
+  async function ({ page }, columns: number) {
+    // Verify grid has the appropriate columns class
+    const grid = page.locator(".grid");
+    const classPattern = new RegExp(`grid-cols-${columns}`);
+    await expect(grid).toHaveClass(classPattern);
+  },
+);
 
 Then(
   "persona cards are displayed in {int} columns in {int} rows",
